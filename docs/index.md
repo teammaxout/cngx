@@ -19,9 +19,13 @@ Nothing requires a cloud account. Data stays on your machine unless you explicit
 ## Quick start
 
 ```bash
-pip install cogscope
+pipx install cogscope
 cogscope quickstart
 ```
+
+Or with pip inside a project environment: `pip install cogscope && cogscope quickstart`
+
+Standalone binaries (no Python) are on [GitHub Releases](https://github.com/aadi-joshi/cogscope/releases).
 
 `quickstart` runs in under a minute with **no API keys** and shows shallow reasoning blocked by a policy.
 

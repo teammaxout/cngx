@@ -60,20 +60,34 @@ Regenerate the recording: `python scripts/demo/record_tracker.py` (see `scripts/
 
 ## Install and try it
 
+**Recommended** (isolated CLI on your PATH, no virtualenv to manage):
+
 ```bash
-git clone https://github.com/aadi-joshi/cogscope.git
-cd cogscope
-pip install -e .
+pipx install cogscope
 cogscope quickstart
 ```
 
-`quickstart` runs a mock scenario: a pipeline that accepts shallow reasoning, then shows Cogscope blocking the same behavior against a policy. No configuration or keys. Under 30 seconds.
+Requires [pipx](https://pipx.pypa.io/). Python 3.10+ must be installed on your system, but you do not need to create or activate a virtual environment.
+
+**Alternatives:**
+
+```bash
+# Inside a project virtualenv
+pip install cogscope
+
+# No Python install: download a standalone binary from GitHub Releases
+# https://github.com/aadi-joshi/cogscope/releases
+```
+
+`quickstart` runs a mock scenario with no API keys or configuration. Under 30 seconds.
 
 Initialize a project directory (creates `.cogscope/` and a local DuckDB store):
 
 ```bash
 cogscope init --yes
 ```
+
+No Docker required for normal use. Docker is optional only if you want to containerize the proxy on a server (see [Installation](docs/getting-started/installation.md)).
 
 ---
 
@@ -195,6 +209,8 @@ Cogscope runs entirely on your machine. No account, no telemetry, no bill. Trace
 ## Development
 
 ```bash
+git clone https://github.com/aadi-joshi/cogscope.git
+cd cogscope
 pip install -e ".[dev]"
 pytest
 ```

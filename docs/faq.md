@@ -80,6 +80,8 @@ Not unless you run `cogscope submit` and confirm. See [Proxy and Privacy](guides
 
 Mock (no keys), OpenAI, Anthropic, and Google Gemini (optional extras). The proxy forwards OpenAI and Anthropic API shapes today.
 
+Install extras with pipx: `pipx inject cogscope "google-genai>=1.0.0"`. Or with pip: `pip install "cogscope[gemini]"`.
+
 ## Where is the code?
 
 | Component | Path |

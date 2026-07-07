@@ -170,7 +170,7 @@ def render_html(
         <p style="color: var(--text-muted); font-size: 0.875rem;">Run Cogscope locally, pin a baseline, capture a long agent session, then submit anonymized metrics:</p>
         <div class="command-block">
           <span class="label">submit drift metrics</span>
-          <pre>pip install cogscope
+          <pre>pipx install cogscope
 cogscope init --yes
 cogscope wrap -- aider     # or cogscope watch
 cogscope pin --label my-baseline

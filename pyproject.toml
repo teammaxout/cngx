@@ -72,6 +72,7 @@ dev = [
     "bandit>=1.7.0",
     "build>=1.0.0",
     "twine>=5.0.0",
+    "pyinstaller>=6.0.0",
     "playwright>=1.40.0",
 ]
 gemini = [

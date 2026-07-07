@@ -1,12 +1,13 @@
 # Quickstart
 
-The fastest way to understand Cogscope is to run it:
+The fastest way to understand Cogscope is to install and run it:
 
 ```bash
+pipx install cogscope
 cogscope quickstart
 ```
 
-**Requirements:** Python 3.10+, `cogscope` installed, **no API keys**, **no configuration**.
+**Requirements:** Python 3.10+ (for pipx/pip), **no API keys**, **no configuration**, **no Docker**.
 
 ## What you'll see
 

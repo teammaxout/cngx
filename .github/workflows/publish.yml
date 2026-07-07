@@ -61,6 +61,13 @@ jobs:
           cogscope --help
           cogscope quickstart
 
+      - name: Smoke test, pipx install from wheel
+        run: |
+          python -m pip install pipx
+          python -m pipx install dist/*.whl
+          "$(python -m pipx environment --value PIPX_BIN_DIR)/cogscope" version
+          "$(python -m pipx environment --value PIPX_BIN_DIR)/cogscope" quickstart
+
       - name: Smoke test, Python import
         run: python -c "from cogscope import __version__; from cogscope.capture.tracer import CogscopeTracer; print(__version__)"
 
