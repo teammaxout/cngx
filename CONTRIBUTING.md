@@ -74,7 +74,7 @@ cogscope/
 └── system_demo/    # Reference pipeline scenarios
 ```
 
-Archived SaaS and marketing site code lives under `_archive_pre_oss/` and is out of scope for new contributions.
+Hosted SaaS and marketing-site code from earlier development is **not** in this repository and is out of scope for new contributions.
 
 ## Proposing a new behavioral metric
 

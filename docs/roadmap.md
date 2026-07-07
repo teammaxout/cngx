@@ -19,8 +19,8 @@ This is the full OSS tool — not a stripped-down demo of a larger platform.
 
 ## Deferred, not abandoned
 
-Phase 2 modules (correctness validators, consensus, benchmarks, etc.) exist in `_archive_pre_oss/` and may return based on community demand. See the root ROADMAP for the full list.
+Phase 2 capabilities (correctness validators, consensus, benchmarks, audit logging, and similar) are **not** included in this repository. They may return based on community demand. See the root [ROADMAP.md](https://github.com/aadi-joshi/cogscope/blob/main/ROADMAP.md) for the full list.
 
-## Archived SaaS
+## Hosted platform
 
-The previous cloud dashboard and enterprise platform also live in `_archive_pre_oss/`. They could inform a future hosted offering but are **not** part of v0.1.0 and **not** required for the local tool to work.
+A previous hosted-dashboard direction is **not** part of v0.1.0 and **not** in this repository. The local tool is complete without it.
