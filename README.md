@@ -44,6 +44,18 @@ Regenerate after UI changes: `vhs scripts/demo/quickstart.tape` (see `scripts/de
 
 ---
 
+## Public drift tracker
+
+The [Cogscope Drift Tracker](https://aadi-joshi.github.io/cogscope/) is a static site of opt-in, anonymous fingerprint trends (depth, verification, hedging, drift vs each submitter's baseline). No prompts or outputs are published.
+
+![Cogscope drift tracker: model tabs, charts, and hover interaction](docs/assets/tracker-demo.gif)
+
+[Full demo (MP4)](docs/assets/tracker-demo.mp4) · [Static screenshot](docs/assets/tracker-demo.png) · [Contribute data](docs/guides/public-drift-log.md)
+
+Regenerate the recording: `python scripts/demo/record_tracker.py` (see `scripts/demo/README.md`).
+
+---
+
 ## Install and try it
 
 ```bash

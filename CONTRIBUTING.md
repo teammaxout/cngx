@@ -135,15 +135,26 @@ Local smoke test for the action logic:
 python scripts/test_github_action_local.py
 ```
 
-## Terminal demo assets
+## Demo assets (dev tooling only)
 
-The README demo GIF is generated with VHS, not screen capture:
+Regenerate README/docs media with scripts under `scripts/demo/`. See `scripts/demo/README.md`.
+
+Terminal quickstart GIF:
 
 ```bash
 vhs scripts/demo/quickstart.tape
 ```
 
-Full instructions (including Windows MSVC ttyd workaround): `scripts/demo/README.md`.
+Tracker site recording:
+
+```bash
+pip install -e ".[dev]"
+playwright install chromium
+python scripts/demo/record_tracker.py
+```
+
+Playwright is listed under `[project.optional-dependencies] dev` only, not in runtime dependencies.
+
 
 ## Code of conduct
 

@@ -3,8 +3,16 @@
 The **Cogscope Drift Tracker** is a static site showing behavioral fingerprint trends over time, built from opt-in community submissions.
 
 - **Source:** `tracker/` in the repository
-- **Site:** built by `tracker/build.py`, deployed to GitHub Pages
+- **Live site:** [aadi-joshi.github.io/cogscope](https://aadi-joshi.github.io/cogscope/)
 - **Cost:** $0 (GitHub Actions + Pages on a public repo)
+
+## Demo
+
+![Cogscope drift tracker walkthrough](../assets/tracker-demo.gif)
+
+[Full recording (MP4, 1280x720)](../assets/tracker-demo.mp4) · [Static screenshot](../assets/tracker-demo.png)
+
+The GIF autoplays in GitHub READMEs; the MP4 is the full-quality version for docs and releases.
 
 ## What it shows
 
@@ -36,12 +44,17 @@ Schema details: [tracker/README.md](https://github.com/aadi-joshi/cogscope/blob/
 
 A separate workflow (`tracker-probe.yml`) can run a small API battery **only if** a repository admin sets `ENABLE_TRACKER_PROBE=true`. It is **off by default**, budget-capped at 5 calls/run, and costs real money if enabled. The tracker works fine without it.
 
-## Build locally
+## Build and record locally
 
 ```bash
 python tracker/build.py
 # open tracker/site/index.html
+
+# Regenerate demo assets for README/docs:
+python scripts/demo/record_tracker.py
 ```
+
+See `scripts/demo/README.md` for Playwright setup.
 
 ## Related
 
