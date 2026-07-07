@@ -1,0 +1,55 @@
+# Reasoning Contract: Minimum Viable Math Reasoning
+# This contract enforces basic mathematical reasoning standards
+
+name: math_reasoning_standard
+version: "1.0.0"
+description: |
+  Enforces minimum reasoning quality for mathematical problems.
+  Models must demonstrate step-by-step thinking with verification.
+
+# Structural requirements
+depth:
+  min: 2
+  max: 20
+  severity: fail
+
+steps:
+  min: 2
+  severity: fail
+
+# Verification is required for math
+verification:
+  required: true
+  min_steps: 1
+  severity: fail
+
+# Output must be substantive
+output:
+  min_length: 50
+  max_length: 10000
+  severity: fail
+
+# Uncertainty must be controlled
+uncertainty:
+  max_hedging_ratio: 0.3
+  severity: warn
+
+# Required patterns for math
+required_patterns:
+  - pattern: '\d+'
+    description: "Must contain numerical values"
+    check_output: true
+    severity: fail
+
+# Forbidden patterns
+forbidden_patterns:
+  - pattern: "I don't know"
+    description: "Model should not express complete uncertainty"
+    check_output: true
+    severity: block
+  - pattern: "I cannot"
+    description: "Model should attempt the problem"
+    check_output: true
+    severity: fail
+
+fail_on_violation: true

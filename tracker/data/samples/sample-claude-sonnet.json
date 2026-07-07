@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "sample": true,
+  "_comment": "Demonstration data only — not from live API calls. For pipeline testing.",
+  "record_id": "sample-claude-sonnet-001",
+  "timestamp": "2026-01-12T14:30:00Z",
+  "model": "claude-sonnet-4-20250514",
+  "baseline_label": "demo-math-baseline",
+  "drift_score": 0.15,
+  "depth": 6,
+  "verification_steps": 3,
+  "hedging_ratio": 0.18,
+  "branching_factor": 0.35,
+  "total_steps": 7,
+  "correction_count": 2,
+  "uncertainty_markers": 4,
+  "output_length": 680,
+  "reasoning_length": 1450
+}

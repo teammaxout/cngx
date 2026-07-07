@@ -1,0 +1,69 @@
+site_name: Cogscope
+site_description: "Local LLM reasoning fingerprinting, drift detection, and policy checks."
+site_url: https://aadi-joshi.github.io/cogscope
+repo_url: https://github.com/aadi-joshi/cogscope
+repo_name: aadi-joshi/cogscope
+
+theme:
+  name: material
+  palette:
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - content.code.copy
+    - content.code.annotate
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quickstart: getting-started/quickstart.md
+  - Concepts:
+    - How Fingerprinting Works: concepts/fingerprinting.md
+    - Writing a Policy: concepts/policies.md
+    - Drift Detection: concepts/drift.md
+  - CLI Reference: cli/reference.md
+  - Guides:
+    - The Proxy and Your Privacy: guides/proxy-and-privacy.md
+    - The Public Drift Log: guides/public-drift-log.md
+  - FAQ: faq.md
+  - Contributing: contributing.md
+  - Roadmap: roadmap.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/aadi-joshi/cogscope

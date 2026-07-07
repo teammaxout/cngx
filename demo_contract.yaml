@@ -1,0 +1,22 @@
+name: thorough_reasoning
+version: 1.0.0
+description: Requires thorough step-by-step reasoning with clear structure
+created_at: '2026-02-01T09:57:00.271032'
+depth:
+  min: 3
+  severity: fail
+steps:
+  min: 3
+  severity: fail
+output:
+  min_length: 100
+  require_structured: false
+  severity: fail
+forbidden_patterns: []
+required_patterns:
+- pattern: (step|first|then|next|finally|therefore|thus|because)
+  description: Must use reasoning connectors
+  check_output: true
+  check_reasoning: false
+  severity: fail
+fail_on_violation: true

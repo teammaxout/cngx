@@ -1,0 +1,83 @@
+# =============================================================================
+# OPTIONAL MAINTAINER PROBE — OFF BY DEFAULT
+# =============================================================================
+# This workflow is NOT required for the tracker to work. Community submissions
+# via `cogscope submit` are the primary data source.
+#
+# To enable: set repository variable ENABLE_TRACKER_PROBE = true
+# Cost: uses your API keys (repository secrets) — real money per run.
+# Budget: HARD CAP of 5 API calls per run (see PROBE_MAX_CALLS below).
+# =============================================================================
+
+name: Tracker Probe (optional)
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+env:
+  PROBE_MAX_CALLS: "5"
+
+jobs:
+  probe:
+    if: vars.ENABLE_TRACKER_PROBE == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install cogscope
+        run: pip install -e .
+
+      - name: Run capped probe battery
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PROBE_MAX_CALLS: ${{ env.PROBE_MAX_CALLS }}
+        run: |
+          python - <<'PY'
+          """Optional maintainer probe — max 5 mock/openai calls, writes local JSON only."""
+          import json
+          import os
+          import uuid
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          max_calls = int(os.environ.get("PROBE_MAX_CALLS", "5"))
+          prompts = [
+              "What is 2+2? Show one verification step.",
+              "Explain why the sky is blue in two sentences.",
+          ][:max_calls]
+
+          out_dir = Path("tracker/data/community/pending")
+          out_dir.mkdir(parents=True, exist_ok=True)
+
+          api_key = os.environ.get("OPENAI_API_KEY")
+          if not api_key:
+              print("No OPENAI_API_KEY — probe skipped (set secret to enable live calls)")
+              raise SystemExit(0)
+
+          from cogscope.capture.tracer import CogscopeTracer
+          from cogscope.cli.submit_cmd import build_submit_payload, validate_submit_payload
+
+          tracer = CogscopeTracer(adapter="openai", model="gpt-4o-mini")
+          for i, prompt in enumerate(prompts[:max_calls]):
+              trace = tracer.capture(prompt=prompt, task_id="tracker_probe", save=False)
+              fp = tracer.get_fingerprint(trace.id)
+              if not fp:
+                  continue
+              payload = build_submit_payload(
+                  fp, baseline_label="probe-baseline", drift_score=0.0,
+                  record_id=str(uuid.uuid4()),
+              )
+              validate_submit_payload(payload)
+              path = out_dir / f"probe-{payload['record_id']}.json"
+              path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+              print(f"Wrote {path}")
+
+          print(f"Probe complete — {min(len(prompts), max_calls)} call(s) max")
+          PY

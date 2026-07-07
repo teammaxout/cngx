@@ -1,0 +1,102 @@
+# Math Correctness Contract
+# Canonical contract for mathematical reasoning AI systems
+#
+# PURPOSE: Ensures AI systems demonstrate rigorous mathematical reasoning
+# with mandatory verification steps to catch computational errors.
+#
+# WHEN TO USE:
+#   - AI tutoring systems
+#   - Automated problem solving
+#   - Code generation for numerical algorithms
+#   - Financial calculations
+#   - Scientific computing
+#
+# WHAT FAILURE LOOKS LIKE:
+#   - Model skips showing work
+#   - Model gives answer without verification
+#   - Model uses excessive hedging language
+#   - Model claims inability to solve
+#
+# WHY VIOLATION IS DANGEROUS:
+#   - Math errors in production can be invisible but costly
+#   - Users may trust incorrect answers
+#   - Downstream systems may amplify errors
+
+name: math_correctness
+version: "2.0.0"
+description: |
+  Enforces rigorous mathematical reasoning with verification.
+  Designed for systems where computational correctness is critical.
+  
+  BLOCK-level violations prevent deployment.
+
+domain: math
+intent: "Ensure AI demonstrates step-by-step reasoning and self-verification for mathematical problems"
+author: "Cogscope Canonical Contracts"
+
+# Reasoning depth
+# Mathematical problems require structured thinking
+depth:
+  min: 3
+  max: 25
+  severity: fail
+  rationale: "Shallow reasoning (depth < 3) indicates model is skipping steps. Deep problems may legitimately require depth up to 25."
+
+# Reasoning steps
+# Math requires multiple explicit steps
+steps:
+  min: 2
+  severity: fail
+  rationale: "At minimum: understand problem, work solution. Simple problems need 2+ steps; complex problems need many more."
+
+# CRITICAL: Verification is mandatory
+# This is the most important constraint for math
+verification:
+  required: true
+  min_steps: 1
+  severity: block
+  rationale: "Mathematical answers MUST be verified. Unverified math output is dangerous and must block deployment."
+
+# Output constraints
+output:
+  min_length: 50
+  severity: fail
+  rationale: "Substantive explanations require at least 50 characters. One-word answers are insufficient."
+
+# Uncertainty handling
+# Math answers should be confident after verification
+uncertainty:
+  max_hedging_ratio: 0.25
+  max_uncertainty_markers: 5
+  severity: warn
+  rationale: "Excessive hedging in math suggests lack of confidence. After verification, answers should be stated clearly."
+
+# Required patterns - must contain numbers
+required_patterns:
+  - pattern: '\d+'
+    description: "Mathematical output must contain numerical values"
+    check_output: true
+    severity: fail
+    rationale: "A math response without numbers is incomplete."
+
+  - pattern: '(=|equals|is|result)'
+    description: "Must state a result or equation"
+    check_output: true
+    severity: fail
+    rationale: "Mathematical reasoning must conclude with a clear result."
+
+# Forbidden patterns - these indicate failure
+forbidden_patterns:
+  - pattern: "(I cannot|I'm unable|I don't know how)"
+    description: "Model should not claim inability for math problems"
+    check_output: true
+    severity: block
+    rationale: "Refusal to attempt math problems indicates capability regression. Must block deployment."
+
+  - pattern: "(just guess|not sure if correct|might be wrong)"
+    description: "Model should not express deep uncertainty after verification"
+    check_output: true
+    severity: fail
+    rationale: "If model verified the answer, it should not still express uncertainty."
+
+block_on_violation: true

@@ -1,0 +1,26 @@
+{
+  "_readme": "Known public model-update markers shown on tracker charts. Only add entries with a verifiable primary source URL. Remove _todo entries once cited.",
+  "annotations": [
+    {
+      "_todo": true,
+      "model_pattern": "gpt-4o*",
+      "date": null,
+      "label": "TODO(human): add GPT-4o release date with OpenAI blog URL",
+      "source_url": null
+    },
+    {
+      "_todo": true,
+      "model_pattern": "claude-*",
+      "date": null,
+      "label": "TODO(human): add Claude 3.5 Sonnet release date with Anthropic announcement URL",
+      "source_url": null
+    },
+    {
+      "_todo": true,
+      "model_pattern": "gemini-*",
+      "date": null,
+      "label": "TODO(human): add Gemini 2.0 Flash release date with Google blog URL",
+      "source_url": null
+    }
+  ]
+}

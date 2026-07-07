@@ -1,0 +1,34 @@
+# Reasoning Contract: Strict Verification Required
+# A stricter contract that fails when models don't verify their work
+
+name: strict_verification
+version: "1.0.0"
+description: |
+  Requires models to perform explicit self-verification.
+  Designed to catch regressions where newer models skip verification.
+
+# Depth must show multi-step reasoning
+depth:
+  min: 3
+  severity: fail
+
+# Must have verification
+verification:
+  required: true
+  min_steps: 2
+  severity: block
+
+# Low hedging - model should be confident after verification
+uncertainty:
+  max_hedging_ratio: 0.15
+  max_uncertainty_markers: 3
+  severity: fail
+
+# Must contain verification language
+required_patterns:
+  - pattern: "(verify|check|confirm|double.check|validate)"
+    description: "Must contain verification language"
+    check_output: true
+    severity: fail
+
+fail_on_violation: true

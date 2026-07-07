@@ -1,0 +1,102 @@
+# Research Reasoning Contract
+# Canonical contract for research and analytical AI systems
+#
+# PURPOSE: Ensures AI systems demonstrate thorough research methodology
+# with evidence-based conclusions and appropriate uncertainty quantification.
+#
+# WHEN TO USE:
+#   - Literature review systems
+#   - Research assistants
+#   - Fact-checking systems
+#   - Analytical report generation
+#   - Decision support systems
+#
+# WHAT FAILURE LOOKS LIKE:
+#   - Model makes claims without evidence
+#   - Model overconfident without analysis
+#   - Model skips alternative considerations
+#   - Model provides shallow analysis
+#
+# WHY VIOLATION IS DANGEROUS:
+#   - Research conclusions propagate to decisions
+#   - Overconfidence hides uncertainty
+#   - Shallow analysis misses critical factors
+
+name: research_reasoning
+version: "2.0.0"
+description: |
+  Enforces rigorous research methodology with evidence and nuance.
+  For systems where analytical quality directly affects decisions.
+  
+  BLOCK-level violations prevent deployment.
+
+domain: research
+intent: "Ensure AI demonstrates thorough analysis with appropriate uncertainty quantification"
+author: "Cogscope Canonical Contracts"
+
+# Reasoning depth
+# Research requires deep analysis
+depth:
+  min: 5
+  max: 50
+  severity: fail
+  rationale: "Research questions require deep exploration. Shallow depth indicates insufficient analysis."
+
+# Reasoning steps
+# Multiple analytical steps required
+steps:
+  min: 5
+  severity: fail
+  rationale: "Research methodology requires: understand question, gather evidence, analyze, synthesize, conclude."
+
+# Verification for research = checking conclusions against evidence
+verification:
+  required: true
+  min_steps: 1
+  severity: block
+  rationale: "Research conclusions must be verified against evidence. Unverified claims are dangerous."
+
+# Output constraints
+# Research outputs must be substantive
+output:
+  min_length: 200
+  severity: fail
+  rationale: "Research responses require detailed explanation. Brief responses indicate insufficient analysis."
+
+# Uncertainty is MORE acceptable in research
+# But excessive hedging still problematic
+uncertainty:
+  max_hedging_ratio: 0.4
+  max_uncertainty_markers: 10
+  severity: warn
+  rationale: "Research should appropriately express uncertainty, but excessive hedging suggests lack of analysis."
+
+# Required patterns for research
+required_patterns:
+  - pattern: "(because|since|therefore|evidence|analysis|consider)"
+    description: "Must use analytical language"
+    check_output: true
+    severity: fail
+    rationale: "Research output must demonstrate analytical reasoning."
+
+  - pattern: "(however|although|alternatively|on the other hand)"
+    description: "Must consider alternatives or nuances"
+    check_output: true  
+    severity: warn
+    rationale: "Good research considers multiple perspectives."
+
+# Forbidden patterns
+forbidden_patterns:
+  - pattern: "(I cannot research|unable to analyze|no information)"
+    description: "Should not claim inability to analyze"
+    check_output: true
+    severity: block
+    rationale: "Refusal to attempt analysis indicates capability regression."
+
+  - pattern: "(obviously|clearly everyone knows|it's common knowledge)"
+    description: "Should not make unsupported claims"
+    check_output: true
+    severity: fail
+    rationale: "Claims without evidence are not research."
+
+block_on_violation: true

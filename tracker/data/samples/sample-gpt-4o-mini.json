@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "sample": true,
+  "_comment": "Demonstration data only — not from live API calls. For pipeline testing.",
+  "record_id": "sample-gpt4o-mini-001",
+  "timestamp": "2026-01-08T10:00:00Z",
+  "model": "gpt-4o-mini",
+  "baseline_label": "demo-math-baseline",
+  "drift_score": 0.08,
+  "depth": 5,
+  "verification_steps": 2,
+  "hedging_ratio": 0.12,
+  "branching_factor": 0.25,
+  "total_steps": 6,
+  "correction_count": 1,
+  "uncertainty_markers": 3,
+  "output_length": 520,
+  "reasoning_length": 1100
+}

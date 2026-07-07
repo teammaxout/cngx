@@ -1,0 +1,28 @@
+# Reasoning Contract: Basic Reasoning
+# A lenient contract that should pass for most well-formed responses
+
+name: basic_reasoning
+version: "1.0.0"
+description: |
+  Minimum viable reasoning standards.
+  Most models should pass this contract.
+
+# Basic structural requirements
+depth:
+  min: 1
+  severity: fail
+
+steps:
+  min: 1
+  severity: fail
+
+# Output must be substantive
+output:
+  min_length: 20
+  severity: fail
+
+# Verification NOT required (lenient)
+# No uncertainty constraints
+# No pattern requirements
+
+fail_on_violation: true

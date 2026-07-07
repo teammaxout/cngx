@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "sample": true,
+  "_comment": "Demonstration data only — not from live API calls. Shows elevated drift in sample set.",
+  "record_id": "sample-gemini-flash-001",
+  "timestamp": "2026-01-15T09:15:00Z",
+  "model": "gemini-2.5-flash",
+  "baseline_label": "demo-math-baseline",
+  "drift_score": 0.42,
+  "depth": 3,
+  "verification_steps": 0,
+  "hedging_ratio": 0.05,
+  "branching_factor": 0.1,
+  "total_steps": 3,
+  "correction_count": 0,
+  "uncertainty_markers": 1,
+  "output_length": 280,
+  "reasoning_length": 320
+}

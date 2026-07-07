@@ -1,0 +1,99 @@
+# Code Correctness Contract
+# Canonical contract for code generation AI systems
+#
+# PURPOSE: Ensures AI code generation demonstrates proper software engineering
+# practices including reasoning about correctness and edge cases.
+#
+# WHEN TO USE:
+#   - AI coding assistants
+#   - Automated code generation
+#   - Code review systems
+#   - Bug fixing systems
+#   - Refactoring assistants
+#
+# WHAT FAILURE LOOKS LIKE:
+#   - Model generates code without explanation
+#   - Model doesn't consider edge cases
+#   - Model doesn't verify logic
+#   - Model produces excessively verbose or terse code
+#
+# WHY VIOLATION IS DANGEROUS:
+#   - Incorrect code can ship to production
+#   - Edge cases cause runtime failures
+#   - Unverified logic creates technical debt
+
+name: code_correctness
+version: "2.0.0"
+description: |
+  Enforces software engineering rigor in AI code generation.
+  Ensures reasoning about correctness, edge cases, and verification.
+  
+  BLOCK-level violations prevent deployment.
+
+domain: code
+intent: "Ensure AI demonstrates proper software engineering reasoning when generating or reviewing code"
+author: "Cogscope Canonical Contracts"
+
+# Reasoning depth
+# Code generation requires understanding before implementation
+depth:
+  min: 3
+  max: 30
+  severity: fail
+  rationale: "Code requires: understand requirements, design approach, implement, verify. Minimum 3 levels."
+
+# Reasoning steps
+steps:
+  min: 3
+  severity: fail
+  rationale: "At minimum: understand problem, generate solution, explain approach."
+
+# Verification is critical for code
+verification:
+  required: true
+  min_steps: 1
+  severity: block
+  rationale: "Code MUST be verified. Unverified code generation is dangerous and must block deployment."
+
+# Output constraints
+output:
+  min_length: 100
+  severity: fail
+  rationale: "Code with explanations requires substantive output."
+
+# Code should be confident
+uncertainty:
+  max_hedging_ratio: 0.2
+  max_uncertainty_markers: 3
+  severity: fail
+  rationale: "Code should work or not. Excessive hedging suggests untested logic."
+
+# Required patterns for code
+required_patterns:
+  - pattern: "(```|def |function |class |const |let |var )"
+    description: "Must include actual code"
+    check_output: true
+    severity: fail
+    rationale: "Code generation must produce code."
+
+# Forbidden patterns
+forbidden_patterns:
+  - pattern: "(I cannot write|unable to generate|I don't know how to code)"
+    description: "Should not refuse code generation"
+    check_output: true
+    severity: block
+    rationale: "Refusal to generate code indicates capability regression."
+
+  - pattern: "(untested|haven't verified|might not work)"
+    description: "Should not express uncertainty about code correctness"
+    check_output: true
+    severity: fail
+    rationale: "Generated code should be verified before presenting."
+
+  - pattern: "(TODO|FIXME|HACK)"
+    description: "Should not include technical debt markers"
+    check_output: true
+    severity: warn
+    rationale: "Generated code should be complete."
+
+block_on_violation: true

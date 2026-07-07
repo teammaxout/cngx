@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environments
+.env
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Data (don't ship databases)
+*.db
+*.duckdb
+/data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test / CI
+.pytest_cache/
+htmlcov/
+.coverage
+.cogscope/

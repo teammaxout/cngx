@@ -1,0 +1,68 @@
+# Dogfooding: run cogscope policy checks in CI (no API keys required).
+
+name: Cogscope Policy Check
+
+on:
+  push:
+    branches: [main, oss-launch]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: pip install -e ".[dev]"
+
+      - name: Run tests
+        run: pytest tests/ -q --tb=short
+
+  policy-check:
+    name: Policy Check (mock)
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: pip install -e .
+
+      - name: Init Cogscope
+        run: cogscope init --yes
+
+      - name: Policy check — basic reasoning
+        run: |
+          cogscope check -c examples/contracts/basic_reasoning.yaml \
+            "What is 15 * 7? Show your reasoning step by step." \
+            --adapter mock --model mock-model
+
+      - name: Policy check — math (expect pass or review, not crash)
+        run: |
+          cogscope check -c examples/contracts/math_reasoning.yaml \
+            "A rectangle has length 8 and width 5. What is the perimeter?" \
+            --adapter mock --model mock-model
+        continue-on-error: true
+
+      - name: Quickstart smoke
+        run: cogscope quickstart
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "cogscope check exit codes: 0=pass, 1=blocked, 2=failed"
+          echo "Policy files: examples/contracts/*.yaml"
