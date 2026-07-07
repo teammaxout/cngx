@@ -126,7 +126,7 @@ def render_html(
       <div id="model-tabs" class="model-tabs" role="tablist" aria-label="Model filter"></div>
       <div class="chart-panel">
         <div class="chart-panel-header">
-          <h3>Model: <span id="active-model-label">, </span></h3>
+          <h3>Model: <span id="active-model-label">n/a</span></h3>
           <span id="model-badge" class="badge badge--sample">sample data</span>
         </div>
         <div class="chart-grid">
