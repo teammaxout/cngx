@@ -1,0 +1,23 @@
+# Fixed benchmark for real-world CI regression validation (Task 3).
+# Each item has objectively checkable answers via substring oracle.
+items:
+  - prompt: "What is 17 * 23? Reply with only the integer."
+    expected_substrings: ["391"]
+  - prompt: "What is the capital of Japan? One word only."
+    expected_substrings: ["Tokyo"]
+  - prompt: "Write Python: print(sum([1,2,3,4,5])). Output only the numeric result."
+    expected_substrings: ["15"]
+  - prompt: "Is 97 a prime number? Answer yes or no only."
+    expected_substrings: ["yes"]
+  - prompt: "Convert 42 kilometers to meters. Integer only."
+    expected_substrings: ["42000"]
+  - prompt: "What is 2**10? Integer only."
+    expected_substrings: ["1024"]
+  - prompt: "Hex FF in decimal? Integer only."
+    expected_substrings: ["255"]
+  - prompt: "Sort ascending: 9,3,7,1. Comma-separated integers only."
+    expected_substrings: ["1", "3", "7", "9"]
+  - prompt: "How many sides does a hexagon have? Integer only."
+    expected_substrings: ["6"]
+  - prompt: "SHA is not required. What is 1000 divided by 8? Decimal or integer."
+    expected_substrings: ["125"]
