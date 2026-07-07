@@ -58,7 +58,7 @@ Provider system-prompt tweaks toward conciseness often trigger structural drift 
 | Optional `--semantic` | Local MiniLM embeddings + Jensen-Shannon distance |
 | Optional `--otel` | OpenTelemetry GenAI spans + `cogscope.fingerprint.*` attributes |
 
-See [Drift detection](concepts/drift.md) for details.
+See [Drift detection](concepts/drift.md) for per-turn methods and [Session trajectories](concepts/sessions.md) for multi-turn collapse detection.
 
 ## How is this different from output benchmarks?
 

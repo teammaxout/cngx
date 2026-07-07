@@ -55,6 +55,7 @@ nav:
     - How Fingerprinting Works: concepts/fingerprinting.md
     - Writing a Policy: concepts/policies.md
     - Drift Detection: concepts/drift.md
+    - Session Trajectories: concepts/sessions.md
   - CLI Reference: cli/reference.md
   - Guides:
     - The Proxy and Your Privacy: guides/proxy-and-privacy.md

@@ -24,6 +24,12 @@ class CaptureEvent:
     alert_message: Optional[str] = None
     metric_shifts: list[dict] = field(default_factory=list)
     no_baseline: bool = False
+    session_id: Optional[str] = None
+    session_turn: Optional[int] = None
+    session_turn_count: Optional[int] = None
+    session_health: Optional[str] = None
+    session_stability_warning: bool = False
+    session_warning_message: Optional[str] = None
 
 
 class EventBus:

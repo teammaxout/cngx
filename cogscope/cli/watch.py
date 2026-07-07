@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from typing import Optional
 
 import typer
 from rich.console import Console
@@ -14,6 +15,11 @@ console = Console(stderr=True)
 def run_watch(
     port: int = typer.Option(8642, "--port", "-p", help="Local proxy port"),
     host: str = typer.Option("127.0.0.1", "--host", help="Bind address (localhost only)"),
+    session_id: Optional[str] = typer.Option(
+        None,
+        "--session-id",
+        help="Explicit session id for multi-turn trajectory tracking",
+    ),
     semantic: bool = typer.Option(
         False,
         "--semantic",
@@ -72,7 +78,7 @@ def run_watch(
 
     import cogscope.proxy.config as proxy_cfg
 
-    proxy_cfg._config = ProxyConfig(host=host, port=port)
+    proxy_cfg._config = ProxyConfig(host=host, port=port, default_session_id=session_id)
 
     proxy_thread = threading.Thread(
         target=run_proxy,

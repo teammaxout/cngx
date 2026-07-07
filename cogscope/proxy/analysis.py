@@ -5,19 +5,18 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import time
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import Optional
 
 from cogscope.core.models import ModelConfig, ReasoningTrace, TokenUsage
 from cogscope.drift.detector import DriftDetector
 from cogscope.drift.semantic import get_semantic_analyzer
+from cogscope.drift.trajectory import detect_verification_collapse, verification_health_label
 from cogscope.fingerprint.extractor import FingerprintExtractor
 from cogscope.observability.otel import emit_capture_span, is_otel_enabled
 from cogscope.proxy.events import CaptureEvent, get_event_bus
 from cogscope.storage.database import get_database
-from cogscope.versioning.baseline import BaselineManager
 
 logger = logging.getLogger("cogscope.proxy.analysis")
 
@@ -46,6 +45,8 @@ def _build_trace_from_openai(
     response_body: dict,
     task_id: str,
     latency_ms: float,
+    session_id: str,
+    session_turn: int,
 ) -> ReasoningTrace:
     model = request_body.get("model", "unknown")
     messages = request_body.get("messages", [])
@@ -82,7 +83,7 @@ def _build_trace_from_openai(
             temperature=request_body.get("temperature", 1.0),
             max_tokens=request_body.get("max_tokens"),
         ),
-        metadata={"source": "proxy"},
+        metadata={"source": "proxy", "session_id": session_id, "session_turn": session_turn},
     )
 
 
@@ -92,7 +93,6 @@ def _find_pinned_baseline(task_id: str, model: str):
     active = [b for b in baselines if b.is_active]
     if not active:
         return None, None
-    # Prefer most recent active baseline for this task
     baseline = sorted(active, key=lambda b: b.created_at, reverse=True)[0]
     try:
         fp = db.get_fingerprint(baseline.fingerprint_id)
@@ -130,6 +130,60 @@ def _parse_openai_response(response_bytes: bytes, was_stream: bool) -> dict | No
         return None
 
 
+def _publish_capture_event(
+    *,
+    trace: ReasoningTrace,
+    fp,
+    task_id: str,
+    session_id: str,
+    session_turn: int,
+    session_turn_count: int,
+    session_health: str,
+    trajectory,
+    assessment=None,
+    no_baseline: bool = False,
+) -> None:
+    bus = get_event_bus()
+    alert = False
+    alert_msg = None
+    metric_shifts: list[dict] = []
+
+    if trajectory.collapse_detected:
+        alert = True
+        alert_msg = trajectory.summary
+
+    if assessment is not None:
+        if assessment.should_alert:
+            alert = True
+            parts = [alert_msg, "; ".join(assessment.plain_language) or assessment.summary]
+            alert_msg = "; ".join(p for p in parts if p)
+        metric_shifts = assessment.outliers
+
+    bus.publish(
+        CaptureEvent(
+            timestamp=datetime.utcnow(),
+            trace_id=trace.id,
+            model=trace.model,
+            task_id=task_id,
+            depth=fp.depth,
+            verification_steps=fp.verification_steps,
+            hedging_ratio=fp.hedging_ratio,
+            drift_score=None if assessment is None else assessment.drift_score,
+            baseline_name=None if assessment is None else assessment.baseline_name,
+            alert=alert,
+            alert_message=alert_msg,
+            metric_shifts=metric_shifts,
+            no_baseline=no_baseline,
+            session_id=session_id,
+            session_turn=session_turn,
+            session_turn_count=session_turn_count,
+            session_health=session_health,
+            session_stability_warning=trajectory.collapse_detected,
+            session_warning_message=trajectory.summary if trajectory.collapse_detected else None,
+        )
+    )
+
+
 async def analyze_completed_call(
     provider: str,
     request_body: dict,
@@ -137,6 +191,7 @@ async def analyze_completed_call(
     task_id: str,
     latency_ms: float,
     was_stream: bool = False,
+    session_id: str = "default",
 ) -> None:
     """Capture fingerprint and optional drift check (runs off hot path)."""
     try:
@@ -150,30 +205,40 @@ async def analyze_completed_call(
         if response_body is None:
             return
 
-        trace = _build_trace_from_openai(request_body, response_body, task_id, latency_ms)
+        db = get_database()
+        session_turn = db.allocate_session_turn(session_id)
+
+        trace = _build_trace_from_openai(
+            request_body, response_body, task_id, latency_ms, session_id, session_turn
+        )
         extractor = FingerprintExtractor()
         fp = extractor.extract(trace)
+        fp.metadata["session_id"] = session_id
+        fp.metadata["session_turn"] = session_turn
 
-        db = get_database()
         db.save_trace(trace)
-        db.save_fingerprint(fp)
+        db.save_fingerprint(fp, session_id=session_id, session_turn=session_turn)
+
+        session_fps = db.get_fingerprints_by_session(session_id)
+        verification_series = [f.verification_steps for f in session_fps]
+        correction_series = [f.correction_count for f in session_fps]
+        trajectory = detect_verification_collapse(verification_series, correction_series)
+        session_health = verification_health_label(verification_series)
+        session_turn_count = len(session_fps)
 
         baseline, baseline_fp = _find_pinned_baseline(task_id, trace.model)
-        bus = get_event_bus()
 
         if baseline_fp is None:
-            bus.publish(
-                CaptureEvent(
-                    timestamp=datetime.utcnow(),
-                    trace_id=trace.id,
-                    model=trace.model,
-                    task_id=task_id,
-                    depth=fp.depth,
-                    verification_steps=fp.verification_steps,
-                    hedging_ratio=fp.hedging_ratio,
-                    no_baseline=True,
-                    alert_message="No baseline pinned, captured and fingerprinted only.",
-                )
+            _publish_capture_event(
+                trace=trace,
+                fp=fp,
+                task_id=task_id,
+                session_id=session_id,
+                session_turn=session_turn,
+                session_turn_count=session_turn_count,
+                session_health=session_health,
+                trajectory=trajectory,
+                no_baseline=True,
             )
             return
 
@@ -213,25 +278,16 @@ async def analyze_completed_call(
                 baseline_name=baseline.name if baseline else None,
             )
 
-        alert_msg = None
-        if assessment.should_alert:
-            alert_msg = "; ".join(assessment.plain_language) or assessment.summary
-
-        bus.publish(
-            CaptureEvent(
-                timestamp=datetime.utcnow(),
-                trace_id=trace.id,
-                model=trace.model,
-                task_id=task_id,
-                depth=fp.depth,
-                verification_steps=fp.verification_steps,
-                hedging_ratio=fp.hedging_ratio,
-                drift_score=assessment.drift_score,
-                baseline_name=baseline.name if baseline else None,
-                alert=assessment.should_alert,
-                alert_message=alert_msg,
-                metric_shifts=assessment.outliers,
-            )
+        _publish_capture_event(
+            trace=trace,
+            fp=fp,
+            task_id=task_id,
+            session_id=session_id,
+            session_turn=session_turn,
+            session_turn_count=session_turn_count,
+            session_health=session_health,
+            trajectory=trajectory,
+            assessment=assessment,
         )
     except Exception as exc:
         logger.debug("Post-capture analysis failed: %s", exc, exc_info=True)
@@ -244,18 +300,31 @@ def schedule_analysis(
     task_id: str,
     latency_ms: float,
     was_stream: bool = False,
+    session_id: str = "default",
 ) -> None:
     """Fire-and-forget analysis so streaming is never blocked."""
     try:
         loop = asyncio.get_running_loop()
         loop.create_task(
             analyze_completed_call(
-                provider, request_body, response_bytes, task_id, latency_ms, was_stream
+                provider,
+                request_body,
+                response_bytes,
+                task_id,
+                latency_ms,
+                was_stream,
+                session_id,
             )
         )
     except RuntimeError:
         asyncio.run(
             analyze_completed_call(
-                provider, request_body, response_bytes, task_id, latency_ms, was_stream
+                provider,
+                request_body,
+                response_bytes,
+                task_id,
+                latency_ms,
+                was_stream,
+                session_id,
             )
         )

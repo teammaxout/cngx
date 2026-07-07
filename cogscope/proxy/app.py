@@ -6,7 +6,7 @@ import json
 import logging
 import os
 import time
-from typing import AsyncIterator
+from typing import AsyncIterator, Optional
 
 import httpx
 from starlette.applications import Starlette
@@ -14,6 +14,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response, StreamingResponse
 from starlette.routing import Route
 
+from cogscope.drift.session import resolve_session_id
 from cogscope.proxy.analysis import schedule_analysis
 from cogscope.proxy.config import get_proxy_config
 
@@ -57,6 +58,15 @@ def _task_id_from_request(request: Request, body: dict) -> str:
     return get_proxy_config().default_task_id
 
 
+def _session_id_from_request(request: Request, body: dict) -> str:
+    cfg = get_proxy_config()
+    return resolve_session_id(
+        explicit=cfg.default_session_id,
+        headers=request.headers,
+        body=body,
+    )
+
+
 async def health(_: Request) -> JSONResponse:
     return JSONResponse({"status": "ok", "service": "cogscope-proxy"})
 
@@ -77,6 +87,7 @@ async def proxy_handler(request: Request) -> Response:
         body = {}
 
     task_id = _task_id_from_request(request, body)
+    session_id = _session_id_from_request(request, body)
     is_stream = bool(body.get("stream"))
     start = time.monotonic()
 
@@ -89,14 +100,16 @@ async def proxy_handler(request: Request) -> Response:
 
     if is_stream and provider == "openai":
         return await _stream_openai(
-            client, url, forward_headers, body_bytes, body, task_id, provider, start
+            client, url, forward_headers, body_bytes, body, task_id, session_id, provider, start
         )
 
     try:
         resp = await client.post(url, content=body_bytes, headers=forward_headers)
         latency_ms = (time.monotonic() - start) * 1000
         content = resp.content
-        schedule_analysis(provider, body, content, task_id, latency_ms, was_stream=False)
+        schedule_analysis(
+            provider, body, content, task_id, latency_ms, was_stream=False, session_id=session_id
+        )
         return Response(
             content=content,
             status_code=resp.status_code,
@@ -113,6 +126,7 @@ async def _stream_openai(
     body_bytes: bytes,
     body: dict,
     task_id: str,
+    session_id: str,
     provider: str,
     start: float,
 ) -> StreamingResponse:
@@ -133,7 +147,15 @@ async def _stream_openai(
             await client.aclose()
             latency_ms = (time.monotonic() - start) * 1000
             merged = b"".join(collected)
-            schedule_analysis(provider, body, merged, task_id, latency_ms, was_stream=True)
+            schedule_analysis(
+                provider,
+                body,
+                merged,
+                task_id,
+                latency_ms,
+                was_stream=True,
+                session_id=session_id,
+            )
 
     return StreamingResponse(generate(), media_type="text/event-stream")
 

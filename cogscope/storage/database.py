@@ -68,7 +68,29 @@ class Database:
             pass  # Older DuckDB versions may not support this
 
         self._init_schema()
+        self._migrate_schema()
         atexit.register(self._atexit_close)
+
+    def _migrate_schema(self) -> None:
+        """Add session columns to existing databases."""
+        for ddl in (
+            "ALTER TABLE fingerprints ADD COLUMN IF NOT EXISTS session_id VARCHAR",
+            "ALTER TABLE fingerprints ADD COLUMN IF NOT EXISTS session_turn INTEGER",
+            """
+            CREATE TABLE IF NOT EXISTS session_counters (
+                session_id VARCHAR PRIMARY KEY,
+                next_turn INTEGER NOT NULL DEFAULT 1,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """,
+        ):
+            try:
+                self.conn.execute(ddl)
+            except Exception:
+                pass
+        self.conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_fingerprints_session ON fingerprints(session_id, session_turn)"
+        )
 
     def _execute(self, query: str, params=None):
         """Thread-safe query execution. Returns the cursor result.
@@ -444,11 +466,19 @@ class Database:
 
     # ==================== Fingerprints ====================
 
-    def save_fingerprint(self, fp: BehavioralFingerprint) -> str:
+    def save_fingerprint(
+        self,
+        fp: BehavioralFingerprint,
+        *,
+        session_id: Optional[str] = None,
+        session_turn: Optional[int] = None,
+    ) -> str:
         """Save a behavioral fingerprint."""
         try:
             # Generate ID if not present
             fp_id = f"fp_{fp.trace_id}"
+            sid = session_id or fp.metadata.get("session_id")
+            turn = session_turn if session_turn is not None else fp.metadata.get("session_turn")
 
             self._execute(
                 """
@@ -459,8 +489,8 @@ class Database:
                  avg_sentence_length, correction_count, backtrack_count, revision_count,
                  uncertainty_markers, confidence_markers, hedging_ratio, verification_steps,
                  example_count, structured_output, tokens_per_step, reasoning_overhead,
-                 signature_hash, metadata, timestamp)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 signature_hash, metadata, timestamp, session_id, session_turn)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT (id) DO UPDATE SET
                     trace_id = excluded.trace_id,
                     task_id = excluded.task_id,
@@ -490,7 +520,9 @@ class Database:
                     reasoning_overhead = excluded.reasoning_overhead,
                     signature_hash = excluded.signature_hash,
                     metadata = excluded.metadata,
-                    timestamp = excluded.timestamp
+                    timestamp = excluded.timestamp,
+                    session_id = excluded.session_id,
+                    session_turn = excluded.session_turn
             """,
                 [
                     fp_id,
@@ -523,6 +555,8 @@ class Database:
                     fp.signature_hash,
                     _json_dumps(fp.metadata),
                     fp.timestamp,
+                    sid,
+                    turn,
                 ],
             )
             return fp_id
@@ -553,6 +587,50 @@ class Database:
         )
         return [self._row_to_fingerprint(r, cols) for r in rows]
 
+    def allocate_session_turn(self, session_id: str) -> int:
+        """Atomically allocate the next turn number for a session."""
+        with self._lock:
+            row = self.conn.execute(
+                "SELECT next_turn FROM session_counters WHERE session_id = ?",
+                [session_id],
+            ).fetchone()
+            if row is None:
+                turn = 1
+                self.conn.execute(
+                    "INSERT INTO session_counters (session_id, next_turn) VALUES (?, ?)",
+                    [session_id, 2],
+                )
+            else:
+                turn = int(row[0])
+                self.conn.execute(
+                    "UPDATE session_counters SET next_turn = ?, updated_at = CURRENT_TIMESTAMP "
+                    "WHERE session_id = ?",
+                    [turn + 1, session_id],
+                )
+            return turn
+
+    def get_fingerprints_by_session(
+        self, session_id: str, limit: int = 500
+    ) -> list[BehavioralFingerprint]:
+        """Get fingerprints for a session ordered by turn number."""
+        rows, cols = self._fetchall(
+            """
+            SELECT * FROM fingerprints
+            WHERE session_id = ?
+            ORDER BY session_turn ASC, timestamp ASC
+            LIMIT ?
+            """,
+            [session_id, limit],
+        )
+        return [self._row_to_fingerprint(r, cols) for r in rows]
+
+    def get_session_turn_count(self, session_id: str) -> int:
+        row, _ = self._fetchone(
+            "SELECT COUNT(*) FROM fingerprints WHERE session_id = ?",
+            [session_id],
+        )
+        return int(row[0]) if row else 0
+
     def _row_to_fingerprint(self, row: tuple, columns: list[str]) -> BehavioralFingerprint:
         """Convert a database row to a BehavioralFingerprint."""
         data = dict(zip(columns, row))
@@ -562,10 +640,18 @@ class Database:
             if isinstance(data.get(field), str):
                 data[field] = json.loads(data[field])
 
+        session_id = data.pop("session_id", None)
+        session_turn = data.pop("session_turn", None)
+
         # Remove 'id' as it's not in the model
         del data["id"]
 
-        return BehavioralFingerprint(**data)
+        fp = BehavioralFingerprint(**data)
+        if session_id:
+            fp.metadata["session_id"] = session_id
+        if session_turn is not None:
+            fp.metadata["session_turn"] = int(session_turn)
+        return fp
 
     # ==================== Baselines ====================
 

@@ -46,3 +46,16 @@ def format_alert_panel(event: CaptureEvent) -> str:
     if event.baseline_name:
         lines.append(f"\n[dim]Baseline: {event.baseline_name}[/]")
     return "\n".join(lines)
+
+
+def format_session_warning_panel(event: CaptureEvent) -> str:
+    lines = [
+        "[bold yellow]Session stability warning[/] (trajectory pattern, not single-turn drift):",
+        "[dim]Verification behavior flattened across recent turns. This may indicate "
+        "hollow verbosity or a lost verification habit, not proof the agent failed.[/]",
+    ]
+    if event.session_warning_message:
+        lines.append(f"  {event.session_warning_message}")
+    if event.session_id:
+        lines.append(f"\n[dim]Session: {event.session_id} · turn {event.session_turn}[/]")
+    return "\n".join(lines)

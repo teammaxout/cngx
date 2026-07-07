@@ -234,13 +234,18 @@ def regression(
 def report(
     hours: int = typer.Option(24, "--hours", "-h"),
     task_id: Optional[str] = typer.Option(None, "--task", "-t"),
+    session: Optional[str] = typer.Option(
+        None, "--session", "-s", help="Session trajectory report"
+    ),
     output: Optional[Path] = typer.Option(None, "--output", "-o"),
     baseline: Optional[str] = typer.Option(None, "--baseline", "-b"),
 ) -> None:
-    """Shareable drift summary (terminal or HTML)."""
+    """Shareable drift summary (terminal or HTML) or session trajectory report."""
     from cogscope.cli import report_cmd
 
-    report_cmd.report(hours=hours, task_id=task_id, output=output, baseline=baseline)
+    report_cmd.report(
+        hours=hours, task_id=task_id, session=session, output=output, baseline=baseline
+    )
 
 
 @app.command()
