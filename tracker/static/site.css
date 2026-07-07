@@ -63,10 +63,20 @@ kbd {
 }
 
 .topbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   text-decoration: none;
   color: var(--fg);
+}
+
+.topbar-logo {
+  display: block;
+  width: 2.25rem;
+  height: auto;
+  flex-shrink: 0;
 }
 
 .topbar-brand:hover {

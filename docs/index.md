@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo-dark.svg" alt="Cogscope" width="140">
+</p>
+
 # Cogscope
 
 **Long autonomous agent runs can look fine turn by turn while reasoning quietly collapses mid-session.**

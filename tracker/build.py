@@ -13,8 +13,10 @@ from collections import defaultdict
 from pathlib import Path
 
 TRACKER_ROOT = Path(__file__).resolve().parent
+REPO_ROOT = TRACKER_ROOT.parent
 DATA_DIR = TRACKER_ROOT / "data"
 STATIC_DIR = TRACKER_ROOT / "static"
+ASSETS_DIR = REPO_ROOT / "docs" / "assets"
 SITE_DIR = TRACKER_ROOT / "site"
 ANNOTATIONS_FILE = DATA_DIR / "annotations.json"
 GITHUB_REPO = "https://github.com/aadi-joshi/cogscope"
@@ -80,6 +82,7 @@ def aggregate_by_model(records: list[dict]) -> dict[str, list[dict]]:
 
 def _head(title: str, description: str, *, docs: bool = False) -> str:
     css = "../site.css" if docs else "site.css"
+    icon = "../logo-light.svg" if docs else "logo-light.svg"
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -88,6 +91,7 @@ def _head(title: str, description: str, *, docs: bool = False) -> str:
   <meta name="description" content="{description}">
   <meta name="color-scheme" content="dark">
   <title>{title}</title>
+  <link rel="icon" href="{icon}" type="image/svg+xml">
   <link rel="stylesheet" href="{css}">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -97,10 +101,14 @@ def _head(title: str, description: str, *, docs: bool = False) -> str:
 def _topbar(*, docs: bool = False) -> str:
     home = "../" if docs else "./"
     docs_href = "./" if docs else "docs/"
+    logo = "../logo-light.svg" if docs else "logo-light.svg"
     tracker_current = ' aria-current="page"' if not docs else ""
     docs_current = ' aria-current="page"' if docs else ""
     return f"""<header class="topbar">
-  <a class="topbar-brand" href="{home}">cogscope</a>
+  <a class="topbar-brand" href="{home}">
+    <img class="topbar-logo" src="{logo}" alt="" width="36" height="22">
+    <span>cogscope</span>
+  </a>
   <nav class="topbar-nav" aria-label="Site">
     <a href="{home}"{tracker_current}>tracker</a>
     <a href="{docs_href}"{docs_current}>docs</a>
@@ -372,6 +380,10 @@ def copy_static_assets() -> None:
         return
     for name in ("site.css", "app.js", "docs.js"):
         src = STATIC_DIR / name
+        if src.exists():
+            shutil.copy2(src, SITE_DIR / name)
+    for name in ("logo-light.svg", "logo-dark.svg", "logo.png"):
+        src = ASSETS_DIR / name
         if src.exists():
             shutil.copy2(src, SITE_DIR / name)
     # docs.js also at site root (already copied); docs page references ../docs.js

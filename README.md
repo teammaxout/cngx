@@ -1,8 +1,14 @@
+<p align="center">
+  <img src="docs/assets/logo-dark.svg" alt="Cogscope" width="160">
+</p>
+
 # Cogscope
 
 [![CI](https://github.com/aadi-joshi/cogscope/actions/workflows/ci.yml/badge.svg)](https://github.com/aadi-joshi/cogscope/actions)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+Created by [**Kavya Bhand**](https://github.com/kavyabhand) and [**Aadi Joshi**](https://github.com/aadi-joshi).
 
 ![Cogscope terminal quickstart: mock adapter policy check](docs/assets/quickstart.svg)
 
@@ -121,18 +127,18 @@ Cogscope forwards provider traffic unchanged, fingerprints each completed respon
 
 ```
   Your agent         Cogscope proxy          Provider API
-      │                    │                      │
-      │  chat request      │  forward (same body) │
-      ├───────────────────►├─────────────────────►
-      │                    │                      │
-      │  streamed response │◄─────────────────────┤
-      ◄────────────────────┤                      │
-      │                    │                      │
+      │                    │                       │
+      │  chat request      │  forward (same body)  │
+      ├───────────────────►├──────────────────────►│
+      │                    │                       │
+      │  streamed response │◄──────────────────────┤
+      ◄────────────────────┤                       │
+      │                    │                       │
       │                    ├── capture trace       │
       │                    ├── fingerprint metrics │
       │                    ├── session trajectory  │
-      │                    ├── diff vs baseline   │
-      │                    └── alert if outlier   │
+      │                    ├── diff vs baseline    │
+      │                    └── alert if outlier    │
 ```
 
 | Step | What happens |

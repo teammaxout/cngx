@@ -6,6 +6,8 @@ repo_name: aadi-joshi/cogscope
 
 theme:
   name: material
+  logo: assets/logo-light.svg
+  favicon: assets/logo-light.svg
   palette:
     - scheme: slate
       primary: indigo
