@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="docs/assets/logo-dark.svg" alt="Cogscope" width="160">
-</p>
+<img width="1774" height="167" alt="banner" src="https://github.com/user-attachments/assets/eb64f63e-1832-4d38-8ab2-6ef48502848b" />
 
 # Cogscope
 
