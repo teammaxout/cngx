@@ -24,6 +24,49 @@ def _load_policy(path: Path):
     return BehaviorContract.from_json(path)
 
 
+def run_offline_check(
+    prompt: str,
+    output: str,
+    policy: Path,
+    model: str = "offline",
+    task_id: str = "policy_check",
+    reasoning_content: Optional[str] = None,
+    json_output: bool = False,
+) -> int:
+    """Fingerprint and gate existing agent output. No LLM calls."""
+    from cngx.capture.trace_builder import build_trace_from_text
+    from cngx.contracts import DeploymentGate
+    from cngx.fingerprint.extractor import FingerprintExtractor
+
+    try:
+        behavior_policy = _load_policy(policy)
+    except Exception as e:
+        console.print(f"[red]Could not load policy: {e}[/]")
+        return 2
+
+    trace = build_trace_from_text(
+        prompt=prompt,
+        output=output,
+        task_id=task_id,
+        model=model,
+        reasoning_content=reasoning_content,
+    )
+    fp = FingerprintExtractor().extract(trace)
+
+    gate = DeploymentGate()
+    result = gate.check(fp, behavior_policy, trace)
+
+    if json_output:
+        out = result.to_ci_output()
+        out["policy"] = out.pop("contract", behavior_policy.name)
+        out["mode"] = "offline"
+        print(json.dumps(out, indent=2, default=str))
+    else:
+        console.print(_format_policy_report(result))
+
+    return result.exit_code
+
+
 def run_check(
     prompt: str,
     policy: Path,
