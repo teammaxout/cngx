@@ -25,6 +25,7 @@ htmlcov/
 .env
 .cngx/
 .cogscope/
+.launch-scratch/
 
 # Generated documentation and tracker site
 site/

@@ -1,5 +1,5 @@
 """
-Lambda handler for anonymous tracker submissions.
+Lambda handler for opt-in tracker submissions.
 
 Schema and validation rules must stay in sync with cngx/cli/submit_cmd.py.
 Never log or persist client IP, headers, or any identity fields.

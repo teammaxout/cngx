@@ -104,7 +104,7 @@ cngx report --output drift.html
 
 ## submit
 
-Submit anonymized drift metrics to the public tracker (opt-in).
+Submit opt-in drift metrics to the community tracker.
 
 ```bash
 cngx submit --baseline my-baseline --dry-run

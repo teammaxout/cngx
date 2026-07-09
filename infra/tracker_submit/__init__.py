@@ -1,1 +1,1 @@
-"""AWS CDK stack for anonymous cngx tracker submissions."""
+"""AWS CDK stack for opt-in cngx tracker submissions."""

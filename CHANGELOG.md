@@ -14,10 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **Fresh public relaunch** under the name **cngx** (renamed from the private `rvc` package).
-- Prior GitHub and PyPI name was **cogscope**; releases now ship as **cngx**.
+- Prior package name on GitHub and PyPI was renamed to **cngx**.
 - **Version reset to 0.1.0**, new version scheme for the open-source developer tool; supersedes the prior 1.0.0/2.0.0 mismatch in the private tree.
 - Enterprise/SaaS surfaces (`platform/`, `cloud/`, `sdk/`, `rvc-demo/`, `rvc-prod/`) moved to `_archive_pre_oss/`.
-- Phase-2 modules (correctness, robustness, governance, benchmarks, etc.) archived for future releases.
+- Deferred modules (correctness, robustness, governance, benchmarks, etc.) archived for future releases.
 
 ### Removed
 - Cloud platform CLI commands, enterprise SDK tests, and multi-service `docker-compose.yml` from the public tree.

@@ -1,4 +1,4 @@
-"""CDK stack: API Gateway + Lambda + S3 for anonymous tracker submit."""
+"""CDK stack: API Gateway + Lambda + S3 for opt-in tracker submit."""
 
 from __future__ import annotations
 
@@ -115,7 +115,7 @@ class TrackerSubmitStack(Stack):
             self,
             "SubmitHttpApi",
             api_name="cngx-tracker-submit",
-            description="Anonymous opt-in drift metric submissions for cngx tracker",
+            description="Opt-in drift metric submissions for the cngx tracker",
             cors_preflight=apigwv2.CorsPreflightOptions(
                 allow_methods=[apigwv2.CorsHttpMethod.POST, apigwv2.CorsHttpMethod.OPTIONS],
                 allow_origins=["*"],

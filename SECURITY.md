@@ -23,7 +23,7 @@ cngx is **local-first**:
 | Telemetry | **None.** No phone-home, no usage analytics, no crash reporting to a vendor backend. |
 | Outbound network (proxy) | Only traffic you initiate: forwarded requests to the LLM provider you configured. |
 
-The only exception is **`cngx submit`**: optional sharing of anonymized drift summaries to a public tracker, with an **explicit preview-and-confirm** step before anything is sent. Nothing is uploaded by default.
+The only exception is **`cngx submit`**: optional sharing of allowlisted drift summaries to the community tracker, with an **explicit preview-and-confirm** step before anything is sent. Nothing is uploaded by default.
 
 ## Scope
 

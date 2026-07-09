@@ -298,7 +298,7 @@ def submit(
     yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview only; do not send"),
 ) -> None:
-    """Submit anonymized drift metrics to the public tracker (opt-in)."""
+    """Submit opt-in drift metrics to the community tracker."""
     from cngx.cli.submit_cmd import run_submit
 
     raise typer.Exit(run_submit(baseline, task, limit, yes, dry_run))

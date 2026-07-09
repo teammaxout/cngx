@@ -1,4 +1,4 @@
-"""cngx submit, opt-in anonymous drift data for the public tracker."""
+"""cngx submit, opt-in drift metrics for the community tracker."""
 
 from __future__ import annotations
 
@@ -70,7 +70,7 @@ def build_submit_payload(
     drift_score: float,
     record_id: Optional[str] = None,
 ) -> dict[str, Any]:
-    """Build an anonymized submission record from a fingerprint."""
+    """Build a submission record from a fingerprint (allowlisted fields only)."""
     import uuid
 
     return {
@@ -202,7 +202,7 @@ def run_submit(
     dry_run: bool = False,
     endpoint: Optional[str] = None,
 ) -> int:
-    """Preview, confirm, and submit anonymized drift records."""
+    """Preview, confirm, and submit opt-in drift records."""
     try:
         payloads = collect_payloads(baseline, task_id, limit)
     except Exception as e:

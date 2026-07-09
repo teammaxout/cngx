@@ -61,7 +61,7 @@ Synthetic draws only. Pin your own baseline on real traffic before treating aler
 | `cngx watch` | Live dashboard on proxied traffic |
 | `cngx pin --label baseline` | Save normal behavior for a task |
 | `cngx diff --baseline baseline` | Compare recent captures to that baseline |
-| `cngx submit --baseline baseline` | Opt-in anonymous metrics to the [public tracker](https://aadi-joshi.github.io/cngx/) |
+| `cngx submit --baseline baseline` | Opt-in metrics to the [community tracker](https://aadi-joshi.github.io/cngx/) |
 
 Set `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GOOGLE_API_KEY` for live providers. Keys stay in memory for forwarding; they are not written to the local database.
 

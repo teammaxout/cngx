@@ -75,6 +75,6 @@ Shows trace/fingerprint counts in your local `.cngx/cngx.db`.
 | Pin normal behavior | `cngx pin --label baseline` |
 | Session trajectory report | `cngx report --session SESSION_ID` |
 | Compare recent calls | `cngx diff --baseline baseline` |
-| Share anonymous metrics (opt-in) | `cngx submit --baseline baseline --dry-run` |
+| Share opt-in metrics | `cngx submit --baseline baseline --dry-run` |
 
 See [Wrap your agent](../guides/wrap-agent.md) and the [CLI Reference](../cli/reference.md).

@@ -207,23 +207,23 @@ class TestFullPipelineIntegration:
         validator = ContractValidator()
         contract = load_contract_from_string(LENIENT_CONTRACT)
 
-        # Phase 1: Capture and create baseline
-        trace1 = tracer.capture(prompt="Phase 1", task_id="lifecycle", save=True)
+        # Step 1: Capture and create baseline
+        trace1 = tracer.capture(prompt="Lifecycle step 1", task_id="lifecycle", save=True)
         fp1 = tracer.get_fingerprint(trace1.id)
         baseline_mgr.create(
             trace_id=trace1.id,
             name="lifecycle_baseline",
         )
 
-        # Phase 2: Capture new trace
-        trace2 = tracer.capture(prompt="Phase 2", task_id="lifecycle", save=True)
+        # Step 2: Capture new trace
+        trace2 = tracer.capture(prompt="Lifecycle step 2", task_id="lifecycle", save=True)
         fp2 = tracer.get_fingerprint(trace2.id)
 
-        # Phase 3: Diff
+        # Step 3: Diff
         diff = diff_engine.diff(fp1, fp2)
         assert diff is not None
 
-        # Phase 4: Validate
+        # Step 4: Validate
         result = validator.validate(fp2, contract, trace2)
         assert result is not None
         assert isinstance(result.exit_code, int)

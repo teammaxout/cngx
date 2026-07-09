@@ -5,7 +5,7 @@ The **cngx Drift Tracker** is a static site showing behavioral fingerprint trend
 - **Source:** `tracker/` in the repository
 - **Live site:** [aadi-joshi.github.io/cngx](https://aadi-joshi.github.io/cngx/)
 - **Live data:** aggregated metrics are served from a public S3 index (refreshed every few minutes in the browser)
-- **Cost:** GitHub Pages for the static shell; a small AWS stack handles anonymous submissions
+- **Cost:** GitHub Pages for the static shell; a small AWS stack handles opt-in submissions
 
 ## Demo
 
