@@ -9,11 +9,19 @@ inputs:
     description: Path to the behavior policy YAML file (relative to repository root)
     required: true
   prompt:
-    description: Prompt text to evaluate. Omit if using prompt-file.
+    description: Prompt or task text. Omit if using prompt-file.
     required: false
     default: ""
   prompt-file:
     description: Path to a file containing the prompt text
+    required: false
+    default: ""
+  response:
+    description: Inline agent output to gate offline (no LLM call). Omit if using response-file.
+    required: false
+    default: ""
+  response-file:
+    description: Path to a file with agent output to gate offline (no LLM call)
     required: false
     default: ""
   python-version:
@@ -33,7 +41,7 @@ inputs:
     required: false
     default: mock-model
   adapter:
-    description: Adapter (mock, openai, gemini, claude)
+    description: Adapter (mock, openai, gemini, claude). Online capture only.
     required: false
     default: mock
   task-id:
@@ -99,16 +107,38 @@ runs:
           exit 2
         fi
 
+        OFFLINE=false
+        if [ -n "${{ inputs.response-file }}" ]; then
+          if [ ! -f "${{ inputs.response-file }}" ]; then
+            echo "response-file not found: ${{ inputs.response-file }}" >&2
+            exit 2
+          fi
+          OFFLINE=true
+        elif [ -n "${{ inputs.response }}" ]; then
+          OFFLINE=true
+        fi
+
         ARGS=(
           check
           -c "$POLICY"
+          --prompt "$PROMPT"
           --model "${{ inputs.model }}"
-          --adapter "${{ inputs.adapter }}"
           --task "${{ inputs.task-id }}"
         )
+
+        if [ "$OFFLINE" = true ]; then
+          if [ -n "${{ inputs.response-file }}" ]; then
+            ARGS+=(--response-file "${{ inputs.response-file }}")
+          else
+            ARGS+=(--response "${{ inputs.response }}")
+          fi
+        else
+          ARGS+=(--adapter "${{ inputs.adapter }}")
+          ARGS+=("$PROMPT")
+        fi
+
         if [ "${{ inputs.json-output }}" = "true" ]; then
           ARGS+=(--json)
         fi
-        ARGS+=("$PROMPT")
 
         cngx "${ARGS[@]}"

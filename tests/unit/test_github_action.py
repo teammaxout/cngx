@@ -18,6 +18,8 @@ def test_action_yml_exists_and_has_required_inputs():
     assert "policy" in inputs and inputs["policy"]["required"] is True
     assert "prompt" in inputs
     assert "prompt-file" in inputs
+    assert "response" in inputs
+    assert "response-file" in inputs
     assert data["inputs"]["install-mode"]["default"] == "pypi"
 
 

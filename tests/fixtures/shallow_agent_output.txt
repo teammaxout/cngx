@@ -1,0 +1,1 @@
+Patch: use items[(page - 1) * size : page * size] for 1-based pages. Ready to merge.

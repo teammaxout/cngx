@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import tempfile
@@ -51,6 +52,31 @@ def check_prompt_file(path: Path) -> int:
     return check_prompt(prompt)
 
 
+def check_offline(
+    prompt: str,
+    response_file: Path,
+    policy: Path = POLICY,
+    *,
+    json_output: bool = False,
+) -> int:
+    cmd = [
+        "cngx",
+        "check",
+        "-c",
+        str(policy),
+        "--prompt",
+        prompt,
+        "--response-file",
+        str(response_file),
+        "--task",
+        "offline_policy_check",
+    ]
+    if json_output:
+        cmd.append("--json")
+    print("+", " ".join(cmd), flush=True)
+    return subprocess.run(cmd, cwd=ROOT, check=False).returncode
+
+
 def main() -> int:
     if not POLICY.is_file():
         print(f"policy missing: {POLICY}", file=sys.stderr)
@@ -81,6 +107,35 @@ def main() -> int:
     if code != 0:
         print(f"FAIL: json output exit {code}", file=sys.stderr)
         return code
+
+    shallow_output = ROOT / "tests" / "fixtures" / "shallow_agent_output.txt"
+    if shallow_output.is_file():
+        from cngx.system_demo.scenarios import CodingAgentFixScenario
+
+        policy_path = ROOT / "examples" / "contracts" / "coding_agent_fix.yaml"
+        temp_policy: Path | None = None
+        if not policy_path.is_file():
+            fd, policy_path_str = tempfile.mkstemp(suffix=".yaml", prefix="coding_agent_")
+            os.close(fd)
+            temp_policy = Path(policy_path_str)
+            policy_path = temp_policy
+            contract = CodingAgentFixScenario.get_scenario().contract
+            policy_path.write_text(contract.to_yaml(), encoding="utf-8")
+        try:
+            code = check_offline(
+                "Fix the pagination bug and run tests before merge",
+                shallow_output,
+                policy=policy_path,
+            )
+            if code != 1:
+                print(
+                    f"FAIL: offline shallow agent should block (exit 1), got {code}",
+                    file=sys.stderr,
+                )
+                return 1
+        finally:
+            if temp_policy is not None:
+                temp_policy.unlink(missing_ok=True)
 
     print("action.yml local smoke: OK")
     return 0
