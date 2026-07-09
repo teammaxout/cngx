@@ -62,9 +62,7 @@ def run_quickstart() -> None:
             "Patch: use items[(page - 1) * size : page * size] for 1-based pages. "
             "Ready to merge."
         ),
-        reasoning_content=(
-            "The slice offset is wrong for page 1. Adjust indices and merge."
-        ),
+        reasoning_content=("The slice offset is wrong for page 1. Adjust indices and merge."),
         token_usage=TokenUsage(prompt_tokens=48, completion_tokens=18, total_tokens=66),
     )
     shallow_fp = BehavioralFingerprint(
