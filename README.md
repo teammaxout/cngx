@@ -20,7 +20,7 @@ Gate existing agent output with no provider calls:
 ```bash
 cngx check -c examples/contracts/coding_agent_fix.yaml \
   -p "Fix the pagination bug and run tests" \
-  --response-file agent_output.txt
+  --output-file agent_output.txt
 ```
 
 Python 3.10+. Requires [pipx](https://pipx.pypa.io/) or `pip install cngx`. See [installation](docs/getting-started/installation.md).
@@ -65,6 +65,7 @@ Synthetic draws only. Pin your own baseline on real traffic before treating aler
 |---------|-----|
 | `cngx quickstart` | Zero-key demo: unverified agent patch blocked |
 | `cngx check -c policy.yaml "…"` | One-shot policy check (CI-friendly exit codes) |
+| `cngx check -c policy.yaml --output-file out.txt` | Gate existing agent output offline |
 | `cngx wrap -- aider` | Route an agent through the local proxy |
 | `cngx watch` | Live dashboard on proxied traffic |
 | `cngx pin --label baseline` | Save normal behavior for a task |

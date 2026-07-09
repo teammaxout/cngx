@@ -1,0 +1,4 @@
+Step 1: Read the question carefully.
+Step 2: Multiply 15 by 7 in two parts (10x7=70, 5x7=35).
+Step 3: Add to get 105.
+Step 4: Verify by dividing 105 by 15 to confirm 7.

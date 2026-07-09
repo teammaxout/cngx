@@ -89,20 +89,20 @@ cngx check -c examples/contracts/basic_reasoning.yaml \
 ```bash
 cngx check -c examples/contracts/coding_agent_fix.yaml \
   -p "Fix the pagination bug and run tests" \
-  --response-file agent_output.txt
+  --output-file agent_output.txt
 
-echo "$AGENT_OUTPUT" | cngx check -c policy.yaml -p "Fix bug" --response-file -
+cat agent_output.txt | cngx check -c policy.yaml -p "Fix bug" --stdin
 ```
 
 | Flag | Description |
 |------|-------------|
 | `-c`, `--policy` | Policy YAML path (required) |
 | `-p`, `--prompt` | Task prompt when not passed positionally |
-| `-r`, `--response` | Inline agent output (offline) |
-| `-f`, `--response-file` | Agent output file; `-` reads stdin (offline) |
-| `--reasoning-file` | Optional chain-of-thought file (offline) |
-| `-m`, `--model` | Model name (default `mock-model` online, `offline` offline) |
-| `-a`, `--adapter` | `mock`, `openai`, `gemini`, `claude` (online only) |
+| `--prompt-file` | Task prompt context file (stored on trace, not sent to any API) |
+| `--output-file` | Agent output file for offline gating |
+| `--stdin` | Read agent output from stdin for offline gating |
+| `-m`, `--model` | Model name label (default `mock-model` online, `agent-output` offline) |
+| `-a`, `--adapter` | `mock`, `openai`, `gemini`, `claude` (online capture only) |
 | `-t`, `--task` | Task ID for capture |
 | `-j`, `--json` | JSON output |
 

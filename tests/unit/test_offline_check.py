@@ -110,7 +110,7 @@ class TestRunOfflineCheck:
         )
         assert code in (0, 2)
 
-    def test_json_output_includes_offline_mode(self, tmp_path, capsys):
+    def test_json_output_uses_ci_shape(self, tmp_path, capsys):
         contract = CodingAgentFixScenario.get_scenario().contract
         policy = tmp_path / "policy.yaml"
         policy.write_text(contract.to_yaml(), encoding="utf-8")
@@ -125,4 +125,6 @@ class TestRunOfflineCheck:
         import json
 
         data = json.loads(captured.out)
-        assert data["mode"] == "offline"
+        assert "exit_code" in data
+        assert "passed" in data
+        assert data["exit_code"] == 1

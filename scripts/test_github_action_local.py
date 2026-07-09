@@ -53,7 +53,7 @@ def check_prompt_file(path: Path) -> int:
 
 def check_offline(
     prompt: str,
-    response_file: Path,
+    output_file: Path,
     policy: Path = POLICY,
     *,
     json_output: bool = False,
@@ -65,8 +65,8 @@ def check_offline(
         str(policy),
         "--prompt",
         prompt,
-        "--response-file",
-        str(response_file),
+        "--output-file",
+        str(output_file),
         "--task",
         "offline_policy_check",
     ]

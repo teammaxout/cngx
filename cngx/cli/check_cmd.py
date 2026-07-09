@@ -25,71 +25,79 @@ def _load_policy(path: Path):
 
 
 def _load_text_file(path: Path) -> str:
-    """Read text from a file path. Use '-' for stdin."""
-    if str(path) == "-":
-        return sys.stdin.read()
     return path.read_text(encoding="utf-8")
 
 
 def _resolve_prompt(
-    prompt_arg: Optional[str], prompt_opt: Optional[str]
-) -> tuple[Optional[str], Optional[int]]:
-    text = prompt_arg or prompt_opt
-    if not text or not text.strip():
-        console.print("[red]Prompt is required (positional argument or --prompt)[/]")
-        return None, 2
+    prompt_arg: Optional[str],
+    prompt_opt: Optional[str],
+    prompt_file: Optional[Path],
+    *,
+    required: bool,
+) -> tuple[str, Optional[int]]:
+    if prompt_file is not None:
+        if not prompt_file.is_file():
+            console.print(f"[red]prompt-file not found: {prompt_file}[/]")
+            return "", 2
+        text = _load_text_file(prompt_file)
+    else:
+        text = prompt_arg or prompt_opt or ""
+
+    if required and (not text or not text.strip()):
+        console.print(
+            "[red]Prompt is required (positional argument, --prompt, or --prompt-file)[/]"
+        )
+        return "", 2
     return text, None
 
 
-def _resolve_response_text(
-    response: Optional[str],
-    response_file: Optional[Path],
-) -> tuple[Optional[str], Optional[int]]:
-    if response is not None and response_file is not None:
-        console.print("[red]Use only one of --response or --response-file[/]")
-        return None, 2
-    if response is not None:
-        return response, None
-    if response_file is not None:
-        return _load_text_file(response_file), None
-    console.print(
-        "[red]Agent output required for offline check: "
-        "use --response, --response-file, or pipe to --response-file -[/]"
-    )
-    return None, 2
+def _resolve_output_text(
+    output_file: Optional[Path],
+    stdin: bool,
+) -> tuple[str, Optional[int]]:
+    if output_file is not None and stdin:
+        console.print("[red]Use only one of --output-file or --stdin[/]")
+        return "", 2
+    if stdin:
+        return sys.stdin.read(), None
+    if output_file is not None:
+        if not output_file.is_file():
+            console.print(f"[red]output-file not found: {output_file}[/]")
+            return "", 2
+        return _load_text_file(output_file), None
+    console.print("[red]Agent output required: use --output-file or --stdin[/]")
+    return "", 2
 
 
 def run_policy_check(
     policy: Path,
     prompt: Optional[str] = None,
     prompt_opt: Optional[str] = None,
-    response: Optional[str] = None,
-    response_file: Optional[Path] = None,
-    reasoning_file: Optional[Path] = None,
+    prompt_file: Optional[Path] = None,
+    output_file: Optional[Path] = None,
+    stdin: bool = False,
     model: str = "mock-model",
     adapter: str = "mock",
     task_id: str = "policy_check",
     json_output: bool = False,
 ) -> int:
-    """Route to offline or online policy check based on response inputs."""
-    offline = response is not None or response_file is not None
-    prompt_text, prompt_err = _resolve_prompt(prompt, prompt_opt)
+    """Route to offline ingest or online capture based on output inputs."""
+    offline = output_file is not None or stdin
+    prompt_text, prompt_err = _resolve_prompt(prompt, prompt_opt, prompt_file, required=not offline)
     if prompt_err is not None:
         return prompt_err
 
     if offline:
-        output_text, output_err = _resolve_response_text(response, response_file)
+        output_text, output_err = _resolve_output_text(output_file, stdin)
         if output_err is not None:
             return output_err
-        reasoning_content = _load_text_file(reasoning_file) if reasoning_file else None
-        offline_model = model if model != "mock-model" else "offline"
+        offline_model = model if model != "mock-model" else "agent-output"
         return run_offline_check(
             prompt=prompt_text,
             output=output_text,
             policy=policy,
             model=offline_model,
             task_id=task_id,
-            reasoning_content=reasoning_content,
             json_output=json_output,
         )
 
@@ -107,15 +115,13 @@ def run_offline_check(
     prompt: str,
     output: str,
     policy: Path,
-    model: str = "offline",
+    model: str = "agent-output",
     task_id: str = "policy_check",
-    reasoning_content: Optional[str] = None,
     json_output: bool = False,
 ) -> int:
     """Fingerprint and gate existing agent output. No LLM calls."""
-    from cngx.capture.trace_builder import build_trace_from_text
+    from cngx.capture.tracer import CngxTracer
     from cngx.contracts import DeploymentGate
-    from cngx.fingerprint.extractor import FingerprintExtractor
 
     try:
         behavior_policy = _load_policy(policy)
@@ -123,14 +129,12 @@ def run_offline_check(
         console.print(f"[red]Could not load policy: {e}[/]")
         return 2
 
-    trace = build_trace_from_text(
+    trace, fp = CngxTracer.ingest_output(
+        output,
         prompt=prompt,
-        output=output,
         task_id=task_id,
         model=model,
-        reasoning_content=reasoning_content,
     )
-    fp = FingerprintExtractor().extract(trace)
 
     gate = DeploymentGate()
     result = gate.check(fp, behavior_policy, trace)
@@ -138,7 +142,6 @@ def run_offline_check(
     if json_output:
         out = result.to_ci_output()
         out["policy"] = out.pop("contract", behavior_policy.name)
-        out["mode"] = "offline"
         print(json.dumps(out, indent=2, default=str))
     else:
         console.print(_format_policy_report(result))
@@ -154,7 +157,7 @@ def run_check(
     task_id: str = "policy_check",
     json_output: bool = False,
 ) -> int:
-    """Check prompt against policy. Returns exit code."""
+    """Check prompt against policy via live capture. Returns exit code."""
     from cngx.capture.tracer import CngxTracer
     from cngx.contracts import DeploymentGate
 
@@ -242,31 +245,29 @@ def _format_policy_report(result) -> str:
 def check(
     prompt: Optional[str] = typer.Argument(
         None,
-        help="Prompt or task description (required for online capture)",
+        help="Prompt or task description",
     ),
     policy: Path = typer.Option(..., "--policy", "-c", help="Policy YAML file"),
     prompt_opt: Optional[str] = typer.Option(
         None,
         "--prompt",
         "-p",
-        help="Prompt text when not passed as a positional argument",
+        help="Task prompt when not passed as a positional argument",
     ),
-    response: Optional[str] = typer.Option(
+    prompt_file: Optional[Path] = typer.Option(
         None,
-        "--response",
-        "-r",
-        help="Existing agent output to fingerprint and gate (offline, no LLM)",
+        "--prompt-file",
+        help="File with task prompt context (stored on trace, not sent to any API)",
     ),
-    response_file: Optional[Path] = typer.Option(
+    output_file: Optional[Path] = typer.Option(
         None,
-        "--response-file",
-        "-f",
-        help="File with agent output; use - for stdin (offline, no LLM)",
+        "--output-file",
+        help="File with agent output to gate offline (no LLM call)",
     ),
-    reasoning_file: Optional[Path] = typer.Option(
-        None,
-        "--reasoning-file",
-        help="Optional chain-of-thought file for offline check",
+    stdin: bool = typer.Option(
+        False,
+        "--stdin",
+        help="Read agent output from stdin for offline gating",
     ),
     model: str = typer.Option("mock-model", "--model", "-m"),
     adapter: str = typer.Option("mock", "--adapter", "-a", help="mock, openai, gemini, claude"),
@@ -276,7 +277,7 @@ def check(
     """Check agent output against a behavior policy.
 
     Online (default): capture a new model response, then gate it.
-    Offline: pass --response or --response-file to gate existing output with zero provider calls.
+    Offline: pass --output-file or --stdin to gate existing output with zero provider calls.
 
     Exit codes: 0 pass, 1 blocked, 2 failed (soft violations or input errors).
     """
@@ -285,9 +286,9 @@ def check(
             policy=policy,
             prompt=prompt,
             prompt_opt=prompt_opt,
-            response=response,
-            response_file=response_file,
-            reasoning_file=reasoning_file,
+            prompt_file=prompt_file,
+            output_file=output_file,
+            stdin=stdin,
             model=model,
             adapter=adapter,
             task_id=task_id,

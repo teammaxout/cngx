@@ -49,7 +49,7 @@ class TestOfflineCodingAgentGate:
                 str(POLICY),
                 "-p",
                 "Fix the pagination bug and run tests before merge",
-                "-f",
+                "--output-file",
                 str(SHALLOW),
             ],
         )

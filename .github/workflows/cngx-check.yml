@@ -63,7 +63,7 @@ jobs:
           set +e
           cngx check -c examples/contracts/coding_agent_fix.yaml \
             -p "Fix the pagination bug and run tests before merge" \
-            --response-file tests/fixtures/shallow_agent_output.txt
+            --output-file tests/fixtures/shallow_agent_output.txt
           code=$?
           set -e
           if [ "$code" -ne 1 ]; then
@@ -95,13 +95,13 @@ jobs:
           prompt-file: tests/fixtures/action_prompt.txt
           task-id: action_prompt_file
 
-      - name: Run root action (offline response-file, expect block)
+      - name: Run root action (offline output-file, expect block)
         uses: ./
         with:
           install-mode: editable
           policy: examples/contracts/coding_agent_fix.yaml
           prompt: "Fix the pagination bug and run tests before merge"
-          response-file: tests/fixtures/shallow_agent_output.txt
+          output-file: tests/fixtures/shallow_agent_output.txt
         continue-on-error: true
         id: offline_action
 

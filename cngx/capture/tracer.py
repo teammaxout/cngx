@@ -110,6 +110,29 @@ class CngxTracer:
             self._fingerprint_extractor = FingerprintExtractor()
         return self._fingerprint_extractor
 
+    @staticmethod
+    def ingest_output(
+        output: str,
+        *,
+        prompt: str = "",
+        task_id: str = "policy_check",
+        model: str = "agent-output",
+        reasoning_content: Optional[str] = None,
+    ) -> tuple[ReasoningTrace, BehavioralFingerprint]:
+        """Build a trace and fingerprint from existing agent output. No LLM calls."""
+        from cngx.capture.trace_builder import build_trace_from_text
+        from cngx.fingerprint.extractor import FingerprintExtractor
+
+        trace = build_trace_from_text(
+            prompt=prompt,
+            output=output,
+            task_id=task_id,
+            model=model,
+            reasoning_content=reasoning_content,
+        )
+        fingerprint = FingerprintExtractor().extract(trace)
+        return trace, fingerprint
+
     def capture(
         self,
         prompt: str,

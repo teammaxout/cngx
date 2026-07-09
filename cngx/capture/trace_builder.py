@@ -14,7 +14,7 @@ def build_trace_from_text(
     output: str,
     *,
     task_id: str = "policy_check",
-    model: str = "offline",
+    model: str = "agent-output",
     adapter_type: str = "offline",
     reasoning_content: Optional[str] = None,
     reasoning_tokens: Optional[list[str]] = None,

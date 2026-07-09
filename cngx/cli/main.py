@@ -238,19 +238,21 @@ def check(
     ),
     policy: Path = typer.Option(..., "--policy", "-c", help="Policy YAML"),
     prompt_opt: Optional[str] = typer.Option(None, "--prompt", "-p"),
-    response: Optional[str] = typer.Option(
+    prompt_file: Optional[Path] = typer.Option(
         None,
-        "--response",
-        "-r",
-        help="Existing agent output (offline, no LLM)",
+        "--prompt-file",
+        help="Task prompt context file (stored on trace, not sent to any API)",
     ),
-    response_file: Optional[Path] = typer.Option(
+    output_file: Optional[Path] = typer.Option(
         None,
-        "--response-file",
-        "-f",
-        help="Agent output file; use - for stdin (offline)",
+        "--output-file",
+        help="Agent output file for offline gating (no LLM call)",
     ),
-    reasoning_file: Optional[Path] = typer.Option(None, "--reasoning-file"),
+    stdin: bool = typer.Option(
+        False,
+        "--stdin",
+        help="Read agent output from stdin for offline gating",
+    ),
     model: str = typer.Option("mock-model", "--model", "-m"),
     adapter: str = typer.Option("mock", "--adapter", "-a"),
     task_id: str = typer.Option("policy_check", "--task", "-t"),
@@ -261,7 +263,7 @@ def check(
     Answers: did this model response actually perform the verification your policy
     requires (tests, repro steps, explicit checks)? CI-friendly exit codes.
 
-    Pass --response or --response-file to gate existing agent output without calling a provider.
+    Pass --output-file or --stdin to gate existing agent output without calling a provider.
 
     For continued agent runs, use watch, pin, and diff to detect session-level drift.
     """
@@ -272,9 +274,9 @@ def check(
             policy=policy,
             prompt=prompt,
             prompt_opt=prompt_opt,
-            response=response,
-            response_file=response_file,
-            reasoning_file=reasoning_file,
+            prompt_file=prompt_file,
+            output_file=output_file,
+            stdin=stdin,
             model=model,
             adapter=adapter,
             task_id=task_id,

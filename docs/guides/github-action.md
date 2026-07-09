@@ -34,14 +34,13 @@ jobs:
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
 | `policy` | yes | | Path to behavior policy YAML |
-| `prompt` | one of `prompt` / `prompt-file` | | Inline prompt or task text |
-| `prompt-file` | one of `prompt` / `prompt-file` | | Path to a file with the prompt |
-| `response` | one of `response` / `response-file` (offline) | | Inline agent output to gate without LLM calls |
-| `response-file` | one of `response` / `response-file` (offline) | | Path to agent output file |
+| `prompt` | one of `prompt` / `prompt-file` (online) | | Inline prompt or task text |
+| `prompt-file` | one of `prompt` / `prompt-file` (online) | | Path to a file with the prompt |
+| `output-file` | offline mode | | Path to agent output file (no LLM call) |
 | `python-version` | no | `3.11` | Python version for `setup-python` |
 | `cngx-version` | no | latest PyPI | Pin a release (for example `0.1.0`) |
 | `install-mode` | no | `pypi` | `pypi` or `editable` (`pip install -e .`, for dogfooding) |
-| `model` | no | `mock-model` | Model name stored on the trace |
+| `model` | no | `mock-model` | Model name label stored on the trace |
 | `adapter` | no | `mock` | `mock`, `openai`, `gemini`, or `claude` (online capture only) |
 | `task-id` | no | `policy_check` | Task ID stored with the capture |
 | `json-output` | no | `false` | Print JSON results |
@@ -65,20 +64,10 @@ Gate agent output that already exists. No API keys. This matches the headline ch
         with:
           policy: policies/coding_agent_fix.yaml
           prompt: "Fix the pagination bug and run tests before merge"
-          response-file: artifacts/agent_output.txt
+          output-file: artifacts/agent_output.txt
 ```
 
-Inline response:
-
-```yaml
-      - uses: aadi-joshi/cngx@v0.1.0
-        with:
-          policy: policies/coding_agent_fix.yaml
-          prompt: "Fix the bug and confirm tests pass"
-          response: ${{ steps.agent.outputs.summary }}
-```
-
-When `response` or `response-file` is set, the action skips adapter capture and fingerprints the provided text only.
+When `output-file` is set, the action skips adapter capture and fingerprints the provided text only.
 
 ## Live model adapters
 

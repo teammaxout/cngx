@@ -16,12 +16,8 @@ inputs:
     description: Path to a file containing the prompt text
     required: false
     default: ""
-  response:
-    description: Inline agent output to gate offline (no LLM call). Omit if using response-file.
-    required: false
-    default: ""
-  response-file:
-    description: Path to a file with agent output to gate offline (no LLM call)
+  output-file:
+    description: Path to agent output file for offline gating (no LLM call)
     required: false
     default: ""
   python-version:
@@ -37,7 +33,7 @@ inputs:
     required: false
     default: pypi
   model:
-    description: Model name passed to cngx check
+    description: Model name label stored on the trace
     required: false
     default: mock-model
   adapter:
@@ -94,47 +90,33 @@ runs:
           exit 2
         fi
 
+        ARGS=(check -c "$POLICY" --model "${{ inputs.model }}" --task "${{ inputs.task-id }}")
+
         if [ -n "${{ inputs.prompt-file }}" ]; then
           if [ ! -f "${{ inputs.prompt-file }}" ]; then
             echo "prompt-file not found: ${{ inputs.prompt-file }}" >&2
             exit 2
           fi
-          PROMPT="$(cat "${{ inputs.prompt-file }}")"
+          ARGS+=(--prompt-file "${{ inputs.prompt-file }}")
         elif [ -n "${{ inputs.prompt }}" ]; then
-          PROMPT="${{ inputs.prompt }}"
-        else
-          echo "Either prompt or prompt-file is required" >&2
-          exit 2
+          ARGS+=(--prompt "${{ inputs.prompt }}")
         fi
 
-        OFFLINE=false
-        if [ -n "${{ inputs.response-file }}" ]; then
-          if [ ! -f "${{ inputs.response-file }}" ]; then
-            echo "response-file not found: ${{ inputs.response-file }}" >&2
+        if [ -n "${{ inputs.output-file }}" ]; then
+          if [ ! -f "${{ inputs.output-file }}" ]; then
+            echo "output-file not found: ${{ inputs.output-file }}" >&2
             exit 2
           fi
-          OFFLINE=true
-        elif [ -n "${{ inputs.response }}" ]; then
-          OFFLINE=true
-        fi
-
-        ARGS=(
-          check
-          -c "$POLICY"
-          --prompt "$PROMPT"
-          --model "${{ inputs.model }}"
-          --task "${{ inputs.task-id }}"
-        )
-
-        if [ "$OFFLINE" = true ]; then
-          if [ -n "${{ inputs.response-file }}" ]; then
-            ARGS+=(--response-file "${{ inputs.response-file }}")
-          else
-            ARGS+=(--response "${{ inputs.response }}")
-          fi
+          ARGS+=(--output-file "${{ inputs.output-file }}")
         else
+          if [ -z "${{ inputs.prompt }}" ] && [ -z "${{ inputs.prompt-file }}" ]; then
+            echo "Either prompt or prompt-file is required" >&2
+            exit 2
+          fi
           ARGS+=(--adapter "${{ inputs.adapter }}")
-          ARGS+=("$PROMPT")
+          if [ -n "${{ inputs.prompt }}" ]; then
+            ARGS+=("${{ inputs.prompt }}")
+          fi
         fi
 
         if [ "${{ inputs.json-output }}" = "true" ]; then
