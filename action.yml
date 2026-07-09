@@ -9,15 +9,15 @@ inputs:
     description: Path to the behavior policy YAML file (relative to repository root)
     required: true
   prompt:
-    description: Prompt or task text. Omit if using prompt-file.
+    description: Prompt or task text for live capture. Optional context for offline gate.
     required: false
     default: ""
   prompt-file:
-    description: Path to a file containing the prompt text
+    description: Path to a file with task prompt context (live capture or offline gate)
     required: false
     default: ""
   output-file:
-    description: Path to agent output file for offline gating (no LLM call)
+    description: Path to agent output file for offline gating (no LLM call, no API keys)
     required: false
     default: ""
   python-version:
@@ -90,6 +90,20 @@ runs:
           exit 2
         fi
 
+        HAS_OUTPUT=false
+        HAS_PROMPT=false
+        if [ -n "${{ inputs.output-file }}" ]; then
+          HAS_OUTPUT=true
+        fi
+        if [ -n "${{ inputs.prompt }}" ] || [ -n "${{ inputs.prompt-file }}" ]; then
+          HAS_PROMPT=true
+        fi
+
+        if [ "$HAS_OUTPUT" != true ] && [ "$HAS_PROMPT" != true ]; then
+          echo "Either output-file (offline gate) or prompt/prompt-file (live check) is required" >&2
+          exit 2
+        fi
+
         ARGS=(check -c "$POLICY" --model "${{ inputs.model }}" --task "${{ inputs.task-id }}")
 
         if [ -n "${{ inputs.prompt-file }}" ]; then
@@ -102,17 +116,13 @@ runs:
           ARGS+=(--prompt "${{ inputs.prompt }}")
         fi
 
-        if [ -n "${{ inputs.output-file }}" ]; then
+        if [ "$HAS_OUTPUT" = true ]; then
           if [ ! -f "${{ inputs.output-file }}" ]; then
             echo "output-file not found: ${{ inputs.output-file }}" >&2
             exit 2
           fi
           ARGS+=(--output-file "${{ inputs.output-file }}")
         else
-          if [ -z "${{ inputs.prompt }}" ] && [ -z "${{ inputs.prompt-file }}" ]; then
-            echo "Either prompt or prompt-file is required" >&2
-            exit 2
-          fi
           ARGS+=(--adapter "${{ inputs.adapter }}")
           if [ -n "${{ inputs.prompt }}" ]; then
             ARGS+=("${{ inputs.prompt }}")

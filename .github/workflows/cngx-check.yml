@@ -113,6 +113,14 @@ jobs:
           fi
           echo "Offline action correctly blocked unverified agent output"
 
+      - name: Run root action (offline verified, expect pass)
+        uses: ./
+        with:
+          install-mode: editable
+          policy: examples/contracts/coding_agent_verification.yaml
+          prompt: "Fix the pagination bug and run tests before merge"
+          output-file: tests/fixtures/agent_outputs/verified_fix.txt
+
       - name: Summary
         if: always()
         run: |

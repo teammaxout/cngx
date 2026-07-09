@@ -10,6 +10,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 POLICY = ROOT / "examples" / "contracts" / "basic_reasoning.yaml"
+CODING_POLICY = ROOT / "examples" / "contracts" / "coding_agent_verification.yaml"
+UNVERIFIED = ROOT / "tests" / "fixtures" / "agent_outputs" / "unverified_patch.txt"
+VERIFIED = ROOT / "tests" / "fixtures" / "agent_outputs" / "verified_fix.txt"
+PROMPT_FILE = ROOT / "tests" / "fixtures" / "action_prompt.txt"
 
 
 def run(cmd: list[str], *, cwd: Path = ROOT) -> None:
@@ -51,25 +55,29 @@ def check_prompt_file(path: Path) -> int:
     return check_prompt(prompt)
 
 
-def check_offline(
-    prompt: str,
+def check_offline_output_file(
     output_file: Path,
-    policy: Path = POLICY,
+    policy: Path,
     *,
+    prompt: str | None = None,
+    prompt_file: Path | None = None,
     json_output: bool = False,
 ) -> int:
+    """Mirror action.yml offline path: --output-file plus optional prompt context."""
     cmd = [
         "cngx",
         "check",
         "-c",
         str(policy),
-        "--prompt",
-        prompt,
         "--output-file",
         str(output_file),
         "--task",
         "offline_policy_check",
     ]
+    if prompt_file is not None:
+        cmd.extend(["--prompt-file", str(prompt_file)])
+    elif prompt is not None:
+        cmd.extend(["--prompt", prompt])
     if json_output:
         cmd.append("--json")
     print("+", " ".join(cmd), flush=True)
@@ -107,19 +115,36 @@ def main() -> int:
         print(f"FAIL: json output exit {code}", file=sys.stderr)
         return code
 
-    shallow_output = ROOT / "tests" / "fixtures" / "agent_outputs" / "unverified_patch.txt"
-    policy_path = ROOT / "examples" / "contracts" / "coding_agent_verification.yaml"
-    if shallow_output.is_file() and policy_path.is_file():
-        code = check_offline(
-            "Fix the pagination bug and run tests before merge",
-            shallow_output,
-            policy=policy_path,
-        )
-        if code != 1:
-            print(
-                f"FAIL: offline shallow agent should block (exit 1), got {code}",
-                file=sys.stderr,
+    if UNVERIFIED.is_file() and CODING_POLICY.is_file():
+        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False, encoding="utf-8") as f:
+            f.write(UNVERIFIED.read_text(encoding="utf-8"))
+            staged = Path(f.name)
+        try:
+            code = check_offline_output_file(
+                staged,
+                CODING_POLICY,
+                prompt="Fix the pagination bug and run tests before merge",
             )
+            if code != 1:
+                print(
+                    f"FAIL: offline unverified should block (exit 1), got {code}", file=sys.stderr
+                )
+                return 1
+        finally:
+            staged.unlink(missing_ok=True)
+
+        code = check_offline_output_file(
+            VERIFIED,
+            CODING_POLICY,
+            prompt_file=PROMPT_FILE if PROMPT_FILE.is_file() else None,
+            prompt=(
+                "Fix the pagination bug and run tests before merge"
+                if not PROMPT_FILE.is_file()
+                else None
+            ),
+        )
+        if code != 0:
+            print(f"FAIL: offline verified should pass (exit 0), got {code}", file=sys.stderr)
             return 1
 
     print("action.yml local smoke: OK")

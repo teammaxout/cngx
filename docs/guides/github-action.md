@@ -2,7 +2,7 @@
 
 cngx ships a reusable composite action at the repository root. Add a policy check to your CI with one step.
 
-## Minimal example
+## Minimal example (live capture, mock adapter)
 
 Copy a policy YAML into your repo (or vendor `examples/contracts/basic_reasoning.yaml` from cngx), then add a job:
 
@@ -34,9 +34,9 @@ jobs:
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
 | `policy` | yes | | Path to behavior policy YAML |
-| `prompt` | one of `prompt` / `prompt-file` (online) | | Inline prompt or task text |
-| `prompt-file` | one of `prompt` / `prompt-file` (online) | | Path to a file with the prompt |
-| `output-file` | offline mode | | Path to agent output file (no LLM call) |
+| `prompt` | live: one of `prompt` / `prompt-file`; offline: optional context | | Inline task text |
+| `prompt-file` | live: one of `prompt` / `prompt-file`; offline: optional context | | Path to task context file |
+| `output-file` | offline mode | | Path to agent output file (no LLM call, no API keys) |
 | `python-version` | no | `3.11` | Python version for `setup-python` |
 | `cngx-version` | no | latest PyPI | Pin a release (for example `0.1.0`) |
 | `install-mode` | no | `pypi` | `pypi` or `editable` (`pip install -e .`, for dogfooding) |
@@ -46,7 +46,48 @@ jobs:
 | `json-output` | no | `false` | Print JSON results |
 | `init` | no | `true` | Run `cngx init --yes` first |
 
-## Long prompts
+Provide **either** `output-file` (offline gate) **or** `prompt` / `prompt-file` (live capture).
+
+## Gate agent output (no API keys)
+
+Use this when your CI already has agent output on disk (patch summary, PR comment export, log file). cngx fingerprints the file and enforces your policy with zero provider calls.
+
+```yaml
+name: Agent CI
+
+on:
+  pull_request:
+
+jobs:
+  gate-agent-output:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Your agent or script writes merge-ready text to a file:
+      # - run: ./my-agent.sh --task "fix pagination" > agent_output.txt
+
+      - name: cngx policy gate
+        uses: aadi-joshi/cngx@v0.1.0
+        with:
+          policy: policies/coding_agent_verification.yaml
+          prompt: "Fix the pagination bug and run tests before merge"
+          output-file: agent_output.txt
+
+      - name: cngx policy gate (prompt from file)
+        uses: aadi-joshi/cngx@v0.1.0
+        with:
+          policy: policies/coding_agent_verification.yaml
+          prompt-file: tasks/fix_pagination.txt
+          output-file: agent_output.txt
+          json-output: "true"
+```
+
+When `output-file` is set, the action skips adapter capture. No `OPENAI_API_KEY` or other provider secrets are required.
+
+See `.github/workflows/example-agent-gate.yml` in this repo for a full dogfooding workflow that blocks `unverified_patch.txt` and passes `verified_fix.txt`.
+
+## Long prompts (live capture)
 
 ```yaml
       - uses: aadi-joshi/cngx@v0.1.0
@@ -55,23 +96,9 @@ jobs:
           prompt-file: tests/fixtures/reasoning_prompt.txt
 ```
 
-## Offline agent output (no LLM calls)
-
-Gate agent output that already exists. No API keys. This matches the headline check: did the agent verify its work before you trust this output?
-
-```yaml
-      - uses: aadi-joshi/cngx@v0.1.0
-        with:
-          policy: policies/coding_agent_verification.yaml
-          prompt: "Fix the pagination bug and run tests before merge"
-          output-file: artifacts/agent_output.txt
-```
-
-When `output-file` is set, the action skips adapter capture and fingerprints the provided text only.
-
 ## Live model adapters
 
-Set API keys on the job (never commit them). The action forwards them to `cngx check`:
+Set API keys on the job (never commit them). The action forwards them to `cngx check` only in live capture mode:
 
 ```yaml
   reasoning-policy:
@@ -87,8 +114,6 @@ Set API keys on the job (never commit them). The action forwards them to `cngx c
           adapter: openai
           model: gpt-4o-mini
 ```
-
-Install provider extras when needed: pin `cngx-version` after we publish optional extras guidance, or fork the install step for now.
 
 ## JSON output for downstream steps
 
@@ -122,7 +147,7 @@ Approximate the composite steps on your machine:
 python scripts/test_github_action_local.py
 ```
 
-This runs editable install, `cngx init --yes`, inline prompt check, prompt-file check, and JSON output, matching `action.yml` logic.
+This runs editable install, live capture checks, offline `output-file` block and pass paths, matching `action.yml` logic.
 
 ## Related
 
