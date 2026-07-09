@@ -5,7 +5,7 @@ Capture reasoning traces, extract behavioral fingerprints, validate YAML
 contracts, detect drift, and gate deployments in CI/CD.
 """
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __author__ = "cngx Contributors"
 
 from cngx.calibration.confidence import ConfidenceCalibrator
