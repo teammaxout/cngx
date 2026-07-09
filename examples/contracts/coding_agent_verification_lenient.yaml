@@ -1,0 +1,66 @@
+# Coding agent verification policy (lenient)
+#
+# When to use: Teams adopting cngx on agent CI who want warnings and soft fails
+# before turning on hard blocks. Same intent as the strict policy, lower bars.
+#
+# What it catches: missing verification language and bypass phrases, but most
+# structural gaps surface as warnings instead of blocks. Pair with quickstart
+# to show what strict mode would block.
+#
+# Offline check:
+#   cngx check -c examples/contracts/coding_agent_verification_lenient.yaml \
+#     --output-file agent_output.txt
+
+name: coding_agent_verification_lenient
+version: "1.0.0"
+description: |
+  Lenient onboarding policy for coding agents. Warns on shallow output;
+  fails (exit 2) on missing verification evidence without hard blocking depth.
+
+domain: code
+intent: Gradual enforcement for agents that should verify fixes before merge
+
+depth:
+  min: 2
+  max: 30
+  severity: warn
+  rationale: Encourage multi-step reasoning without blocking shallow drafts.
+
+steps:
+  min: 2
+  severity: warn
+  rationale: Nudge toward reproduce, fix, verify flow.
+
+verification:
+  required: true
+  min_steps: 1
+  severity: fail
+  rationale: Verification evidence is still required, but as a soft fail.
+
+output:
+  min_length: 80
+  severity: warn
+  rationale: Short summaries are flagged, not failed.
+
+uncertainty:
+  max_hedging_ratio: 0.35
+  severity: warn
+  rationale: Allow more hedging while teams tune policies.
+
+forbidden_patterns:
+  - pattern: "ship it|LGTM|merge as-is|skip tests|tests can wait"
+    description: Must not bypass verification or rubber-stamp merge
+    check_output: true
+    check_reasoning: true
+    severity: fail
+    rationale: Bypass language should fail review even in lenient mode.
+
+required_patterns:
+  - pattern: "test|pytest|verify|repro|assert"
+    description: Must reference verification activity
+    check_output: true
+    check_reasoning: false
+    severity: fail
+    rationale: Merge proposals without verification evidence are unsafe.
+
+block_on_violation: true

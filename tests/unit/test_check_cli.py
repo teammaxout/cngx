@@ -9,10 +9,13 @@ from cngx.cli.main import app
 runner = CliRunner()
 
 ROOT = Path(__file__).resolve().parents[2]
+UNVERIFIED_OUTPUT = ROOT / "tests/fixtures/agent_outputs/unverified_patch.txt"
 SHALLOW_OUTPUT = (
-    "Patch: use items[(page - 1) * size : page * size] for 1-based pages. " "Ready to merge."
+    UNVERIFIED_OUTPUT.read_text(encoding="utf-8")
+    if UNVERIFIED_OUTPUT.is_file()
+    else ("Patch: use items[(page - 1) * size : page * size] for 1-based pages. " "Ready to merge.")
 )
-CODING_POLICY = ROOT / "examples/contracts/coding_agent_fix.yaml"
+CODING_POLICY = ROOT / "examples/contracts/coding_agent_verification.yaml"
 
 
 class TestCheckOfflineCli:

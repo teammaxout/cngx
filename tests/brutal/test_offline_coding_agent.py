@@ -12,8 +12,8 @@ from cngx.fingerprint.extractor import FingerprintExtractor
 from cngx.system_demo.scenarios import CodingAgentFixScenario
 
 ROOT = Path(__file__).resolve().parents[2]
-POLICY = ROOT / "examples" / "contracts" / "coding_agent_fix.yaml"
-SHALLOW = ROOT / "tests" / "fixtures" / "shallow_agent_output.txt"
+POLICY = ROOT / "examples" / "contracts" / "coding_agent_verification.yaml"
+SHALLOW = ROOT / "tests" / "fixtures" / "agent_outputs" / "unverified_patch.txt"
 
 runner = CliRunner()
 
@@ -25,7 +25,9 @@ def scenario():
 
 class TestOfflineCodingAgentGate:
     def test_policy_file_exists(self):
-        assert POLICY.is_file(), "examples/contracts/coding_agent_fix.yaml must be committed"
+        assert (
+            POLICY.is_file()
+        ), "examples/contracts/coding_agent_verification.yaml must be committed"
 
     def test_shallow_fixture_blocks_via_extractor(self, scenario):
         output = SHALLOW.read_text(encoding="utf-8")

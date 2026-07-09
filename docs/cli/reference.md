@@ -87,7 +87,7 @@ cngx check -c examples/contracts/basic_reasoning.yaml \
 **Offline:** fingerprint and gate agent output that already exists. No provider calls.
 
 ```bash
-cngx check -c examples/contracts/coding_agent_fix.yaml \
+cngx check -c examples/contracts/coding_agent_verification.yaml \
   -p "Fix the pagination bug and run tests" \
   --output-file agent_output.txt
 

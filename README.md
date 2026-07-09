@@ -18,7 +18,7 @@ cngx check -c examples/contracts/basic_reasoning.yaml "Fix the bug and run the t
 Gate existing agent output with no provider calls:
 
 ```bash
-cngx check -c examples/contracts/coding_agent_fix.yaml \
+cngx check -c examples/contracts/coding_agent_verification.yaml \
   -p "Fix the pagination bug and run tests" \
   --output-file agent_output.txt
 ```

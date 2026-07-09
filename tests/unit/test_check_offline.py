@@ -14,9 +14,9 @@ from cngx.cli.main import app
 
 ROOT = Path(__file__).resolve().parents[2]
 BASIC_POLICY = ROOT / "examples/contracts/basic_reasoning.yaml"
-CODING_POLICY = ROOT / "examples/contracts/coding_agent_fix.yaml"
+CODING_POLICY = ROOT / "examples/contracts/coding_agent_verification.yaml"
 GOOD_OUTPUT = ROOT / "tests/fixtures/offline_good_output.txt"
-BAD_OUTPUT = ROOT / "tests/fixtures/shallow_agent_output.txt"
+BAD_OUTPUT = ROOT / "tests/fixtures/agent_outputs/unverified_patch.txt"
 
 runner = CliRunner()
 

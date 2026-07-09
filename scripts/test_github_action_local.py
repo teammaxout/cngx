@@ -107,8 +107,8 @@ def main() -> int:
         print(f"FAIL: json output exit {code}", file=sys.stderr)
         return code
 
-    shallow_output = ROOT / "tests" / "fixtures" / "shallow_agent_output.txt"
-    policy_path = ROOT / "examples" / "contracts" / "coding_agent_fix.yaml"
+    shallow_output = ROOT / "tests" / "fixtures" / "agent_outputs" / "unverified_patch.txt"
+    policy_path = ROOT / "examples" / "contracts" / "coding_agent_verification.yaml"
     if shallow_output.is_file() and policy_path.is_file():
         code = check_offline(
             "Fix the pagination bug and run tests before merge",

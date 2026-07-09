@@ -1,0 +1,4 @@
+1. Reproduced the failing pagination test for page 1 in tests/test_users.py.
+2. Updated slice logic to items[(page - 1) * size : page * size] for 1-based pages.
+3. Ran pytest on tests/test_users.py; all 12 tests passed with no regressions.
+4. Verified the fix against the original bug report. Summary: safe to merge after checks.

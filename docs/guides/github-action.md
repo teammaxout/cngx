@@ -62,7 +62,7 @@ Gate agent output that already exists. No API keys. This matches the headline ch
 ```yaml
       - uses: aadi-joshi/cngx@v0.1.0
         with:
-          policy: policies/coding_agent_fix.yaml
+          policy: policies/coding_agent_verification.yaml
           prompt: "Fix the pagination bug and run tests before merge"
           output-file: artifacts/agent_output.txt
 ```

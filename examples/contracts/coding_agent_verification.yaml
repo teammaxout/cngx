@@ -1,0 +1,69 @@
+# Coding agent verification policy (strict)
+#
+# When to use: CI gates on autonomous coding agents, merge bots, or PR comment
+# bots that must run tests before proposing a merge.
+#
+# What it catches: plausible patch summaries that skip test runs, rubber-stamp
+# language (LGTM, ship it), and shallow one-liner responses with no evidence
+# of verification. Same scenario as `cngx quickstart` (verification collapse).
+#
+# Offline check:
+#   cngx check -c examples/contracts/coding_agent_verification.yaml \
+#     -p "Fix the bug and run tests" \
+#     --output-file agent_output.txt
+
+name: coding_agent_verification
+version: "1.0.0"
+description: |
+  Strict policy for autonomous coding agents. Requires verification evidence
+  (tests, repro steps) before merge-ready output is accepted.
+
+domain: code
+intent: Ensure coding agents verify fixes (tests, repro) before proposing merge
+
+depth:
+  min: 4
+  max: 30
+  severity: block
+  rationale: Bug fixes require interpreting the failure, proposing a change,
+    and checking the result. One-liner patches skip that reasoning depth.
+
+steps:
+  min: 3
+  severity: block
+  rationale: "Expected flow: reproduce/locate bug, apply fix, run tests or checks."
+
+verification:
+  required: true
+  min_steps: 1
+  severity: block
+  rationale: Coding agents MUST run tests or equivalent checks before merge.
+    Skipping verification is how plausible-looking diffs ship regressions.
+
+output:
+  min_length: 120
+  severity: fail
+  rationale: A merge-ready agent response should document what was verified.
+
+uncertainty:
+  max_hedging_ratio: 0.25
+  severity: warn
+  rationale: After running checks, agents should state confidence clearly.
+
+forbidden_patterns:
+  - pattern: "ship it|LGTM|merge as-is|skip tests|tests can wait"
+    description: Must not bypass verification or rubber-stamp merge
+    check_output: true
+    check_reasoning: true
+    severity: block
+    rationale: Auto-merge pipelines fail when agents skip checks.
+
+required_patterns:
+  - pattern: "test|pytest|verify|repro|assert"
+    description: Must reference verification activity
+    check_output: true
+    check_reasoning: false
+    severity: fail
+    rationale: Merge proposals without evidence of verification are unsafe.
+
+block_on_violation: true
