@@ -18,7 +18,12 @@ console = Console()
 
 app = typer.Typer(
     name="cngx",
-    help="cngx, local proxy for autonomous agent reasoning drift",
+    help=(
+        "cngx: policy-check autonomous coding agents on message one (no baseline, no history).\n\n"
+        "Headline: run cngx check on a single response to see whether verification actually "
+        "happened before you trust a diff or merge.\n\n"
+        "Deeper: cngx watch / pin / diff track reasoning drift across long agent sessions."
+    ),
     add_completion=False,
     pretty_exceptions_enable=True,
     pretty_exceptions_short=True,
@@ -107,7 +112,7 @@ def init(
 
 @app.command()
 def quickstart() -> None:
-    """Zero-config demo: catch a silent reasoning regression."""
+    """Zero-key demo: block an unverified agent patch (message-one policy check)."""
     from cngx.cli.quickstart_cmd import run_quickstart
 
     run_quickstart()
@@ -234,7 +239,13 @@ def check(
     task_id: str = typer.Option("policy_check", "--task", "-t"),
     json_output: bool = typer.Option(False, "--json", "-j"),
 ) -> None:
-    """Check a prompt against a behavior policy (CI-friendly exit codes)."""
+    """Check one response against policy, no baseline or session history required.
+
+    Answers: did this model response actually perform the verification your policy
+    requires (tests, repro steps, explicit checks)? CI-friendly exit codes.
+
+    For continued agent runs, use watch, pin, and diff to detect session-level drift.
+    """
     from cngx.cli.check_cmd import run_check
 
     raise typer.Exit(run_check(prompt, policy, model, adapter, task_id, json_output))

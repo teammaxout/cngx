@@ -11,7 +11,9 @@ import typer
 from rich.console import Console
 
 console = Console(stderr=True)
-app = typer.Typer(help="Check a prompt against a behavior policy")
+app = typer.Typer(
+    help="Check one prompt/response against a behavior policy (message one, no baseline)"
+)
 
 
 def _load_policy(path: Path):
