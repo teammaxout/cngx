@@ -365,4 +365,6 @@ class TestDockerConfiguration:
             data = tomllib.load(f)
         assert "project" in data
         assert data["project"]["name"] == "cngx"
-        assert data["project"]["version"] == "0.1.0"
+        from cngx import __version__
+
+        assert data["project"]["version"] == __version__

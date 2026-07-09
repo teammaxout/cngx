@@ -54,9 +54,11 @@ class TestVersionCommand:
 
     def test_version_output(self):
         """cngx version should output the version string."""
+        from cngx import __version__
+
         result = runner.invoke(app, ["version"])
         assert result.exit_code == 0
-        assert "0.1.0" in result.output or "cngx" in result.output.lower()
+        assert __version__ in result.output or "cngx" in result.output.lower()
 
 
 class TestStatusCommand:
