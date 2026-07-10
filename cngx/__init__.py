@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 __author__ = "cngx Contributors"
 
 # Keep the public surface, but import heavy modules lazily so CLI entrypoints
