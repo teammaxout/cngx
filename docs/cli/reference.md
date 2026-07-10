@@ -1,6 +1,6 @@
 # CLI Reference
 
-All commands verified against `cngx v0.1.6`. Run `cngx --help` for the live list.
+All commands verified against `cngx v0.1.7`. Run `cngx --help` for the live list.
 
 ## Global
 

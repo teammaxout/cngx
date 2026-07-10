@@ -22,7 +22,7 @@ The command runs a mock scenario in under 30 seconds:
 
 The demo uses the mock adapter and a deterministic fingerprint so the BLOCKED result is reliable every run, not random LLM variance.
 
-Regenerate the GIF after UI changes:
+Regenerate the demo SVG after UI changes:
 
 ```bash
 vhs scripts/demo/quickstart.tape

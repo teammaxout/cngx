@@ -29,7 +29,7 @@ inputs:
     required: false
     default: "3.11"
   cngx-version:
-    description: Pin a cngx PyPI release (for example 0.1.6). Leave empty for latest.
+    description: Pin a cngx PyPI release (for example 0.1.7). Leave empty for latest.
     required: false
     default: ""
   install-mode:

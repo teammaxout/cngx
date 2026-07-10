@@ -1,9 +1,9 @@
 # cngx Roadmap
 
-cngx **v0.1.6** is a deliberately narrow open-source tool: local fingerprinting,
+cngx **v0.1.7** is a deliberately narrow open-source tool: local fingerprinting,
 offline agent gating, baseline-relative drift, and policy checks. Not a full AI platform.
 
-## What ships today (v0.1.6)
+## What ships today (v0.1.7)
 
 | Capability | Status |
 |------------|--------|

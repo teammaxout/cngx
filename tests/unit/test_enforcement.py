@@ -156,13 +156,13 @@ class TestGitHubActionGenerator:
             policy_file="policies/strict.yaml",
             output_file="out.txt",
             evidence_file="pytest.log",
-            cngx_version="0.1.6",
+            cngx_version="0.1.7",
         )
         assert "3.12" in yaml
         assert "policies/strict.yaml" in yaml
         assert "out.txt" in yaml
         assert "pytest.log" in yaml
-        assert "0.1.6" in yaml
+        assert "0.1.7" in yaml
 
     def test_save(self, tmp_path):
         from cngx.enforcement import GitHubActionGenerator

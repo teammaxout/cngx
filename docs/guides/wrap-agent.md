@@ -1,6 +1,6 @@
-# Wrap your agent (recommended)
+# Wrap your agent
 
-The fastest way to use cngx with an existing agent CLI is **`cngx wrap`**. No edits to the agent's source or config files.
+Instrument an existing agent CLI through the local proxy with zero code changes. Wrap fingerprints traffic and enables session drift alerts. It does **not** run YAML policy gates; use `cngx check --output-file` (or the GitHub Action) to block merges.
 
 ## Basic usage
 

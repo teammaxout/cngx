@@ -31,7 +31,7 @@ class GitHubActionGenerator:
         policy_file: str = "examples/contracts/coding_agent_verification.yaml",
         output_file: str = "agent_output.txt",
         evidence_file: str = "",
-        cngx_version: str = "0.1.6",
+        cngx_version: str = "0.1.7",
     ) -> str:
         """Generate a workflow that gates agent output offline (no API keys).
 

@@ -101,7 +101,7 @@ Patterns run through a ReDoS-safe sandbox (`cngx/security/`).
 ## CI usage
 
 ```bash
-cngx check -c policies/my_policy.yaml "Your prompt here" --adapter mock
+cngx check -c examples/contracts/basic_reasoning.yaml "Your prompt here" --adapter mock
 echo $?   # 0 pass, 1 blocked, 2 failed
 ```
 

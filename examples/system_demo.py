@@ -170,7 +170,7 @@ def run_without_cngx_demo():
     console.print()
     console.print("[bold yellow]━━━ MODE: WITHOUT cngx ━━━[/]")
     console.print()
-    console.print("[dim]This simulates what happens in production today:[/]")
+    console.print("[dim]This simulates what happens without a verification gate:[/]")
     console.print("[dim]  • AI produces output[/]")
     console.print("[dim]  • Downstream systems trust it[/]")
     console.print("[dim]  • No policy check[/]")

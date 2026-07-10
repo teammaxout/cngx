@@ -36,6 +36,15 @@ jobs:
           fi
           echo "Unverified patch correctly blocked"
 
+      - name: Stage pytest evidence log
+        run: |
+          cat > /tmp/pytest.log <<'EOF'
+          ============================= test session starts ==============================
+          collected 12 items
+          tests/test_users.py ............                                         [100%]
+          ============================= 12 passed in 0.41s ===============================
+          EOF
+
       - name: cngx check verified fix (expect pass)
         uses: ./
         with:
@@ -43,3 +52,4 @@ jobs:
           policy: examples/contracts/coding_agent_verification.yaml
           prompt-file: tests/fixtures/action_prompt.txt
           output-file: tests/fixtures/agent_outputs/verified_fix.txt
+          evidence-file: /tmp/pytest.log

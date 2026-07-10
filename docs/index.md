@@ -10,8 +10,8 @@ Local proxy + offline CI gate. No account. No cloud.
 
 ## What it does
 
-1. **Check** gate existing agent output offline (`cngx check --output-file`) or live against a provider.
-2. **Wrap** run any agent CLI through the local proxy with zero code changes (`cngx wrap -- aider`).
+1. **Check** gate existing agent output offline (`cngx check --output-file`) or live against a provider. This is the day-one CI path.
+2. **Wrap** run any OpenAI/Anthropic agent CLI through the local proxy (`cngx wrap -- aider`) for fingerprinting and session drift. Wrap does not enforce YAML policies.
 3. **Capture** intercept LLM traffic through that proxy (or direct adapter calls).
 4. **Fingerprint** extract numeric behavioral metrics from each response (depth, verification steps, hedging, and more).
 5. **Track sessions** tag each turn with session id and turn number; detect verification variance collapse over long runs.
@@ -38,6 +38,16 @@ Standalone binaries (no Python) are on [GitHub Releases](https://github.com/aadi
 ![cngx quickstart demo](assets/quickstart.svg)
 
 ## Recommended usage with an agent
+
+Day one (CI, no API keys):
+
+```bash
+cngx check --output-file agent.txt \
+  -c examples/contracts/coding_agent_verification.yaml \
+  -p "your task"
+```
+
+Long sessions (OpenAI/Anthropic only; fingerprints + drift, not policy gates):
 
 ```bash
 cngx init --yes

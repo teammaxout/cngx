@@ -119,7 +119,7 @@ Maintainers review for correctness, test coverage, user-facing clarity (plain la
 
 ## CI integration and README badge
 
-**GitHub Action:** add `uses: aadi-joshi/cngx@v0.1.6` to your workflow. See [docs/guides/github-action.md](docs/guides/github-action.md).
+**GitHub Action:** add `uses: aadi-joshi/cngx@v0.1.7` to your workflow. See [docs/guides/github-action.md](docs/guides/github-action.md).
 
 **README badge** (shields.io):
 

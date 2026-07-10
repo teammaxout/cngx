@@ -48,7 +48,7 @@ def print_header():
             "You deploy an AI system for math tutoring.\n"
             "Your policy requires step-by-step reasoning + verification.\n"
             "A model upgrade produces correct answers with LESS reasoning.\n\n"
-            "[yellow bold]Without cngx:[/] Silent regression ships to production.\n"
+            "[yellow bold]Without cngx:[/] Silent regression ships unverified.\n"
             "[green bold]With cngx:[/] Deployment BLOCKED. Regression caught.",
             title="[bold]DEMO[/]",
             border_style="cyan",
