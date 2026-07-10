@@ -1,6 +1,6 @@
 # CLI Reference
 
-All commands verified against `cngx v0.1.4`. Run `cngx --help` for the live list.
+All commands verified against `cngx v0.1.5`. Run `cngx --help` for the live list.
 
 ## Global
 
@@ -94,6 +94,15 @@ cngx check -c examples/contracts/coding_agent_verification.yaml \
 cat agent_output.txt | cngx check -c policy.yaml -p "Fix bug" --stdin
 ```
 
+**Offline with evidence:** also require a real pytest/CI log (must contain e.g. `N passed`):
+
+```bash
+cngx check -c examples/contracts/coding_agent_verification.yaml \
+  -p "Fix the pagination bug and run tests" \
+  --output-file agent_output.txt \
+  --evidence-file pytest.log
+```
+
 | Flag | Description |
 |------|-------------|
 | `-c`, `--policy` | Policy YAML path (required) |
@@ -101,12 +110,38 @@ cat agent_output.txt | cngx check -c policy.yaml -p "Fix bug" --stdin
 | `--prompt-file` | Task prompt context file (stored on trace, not sent to any API) |
 | `--output-file` | Agent output file for offline gating |
 | `--stdin` | Read agent output from stdin for offline gating |
+| `--evidence-file` | CI/test log to cross-check (offline only; must contain e.g. `N passed`) |
 | `-m`, `--model` | Model name label (default `mock-model` online, `agent-output` offline) |
 | `-a`, `--adapter` | `mock`, `openai`, `gemini`, `claude` (online capture only) |
 | `-t`, `--task` | Task ID for capture |
 | `-j`, `--json` | JSON output |
 
 Exit codes: **0** pass, **1** blocked, **2** failed.
+
+## regression
+
+Run a fixed benchmark suite with McNemar or paired permutation tests (CI). Requires a YAML suite and policy; optional baseline outcomes JSON for paired stats.
+
+```bash
+cngx regression --suite examples/regression_suite_real.yaml \
+  --policy examples/contracts/strict_verification.yaml \
+  --adapter mock --model mock-model
+
+cngx regression -s examples/regression_suite_real.yaml \
+  -c examples/contracts/strict_verification.yaml \
+  --baseline-outcomes baseline_scores.json --json
+```
+
+| Flag | Description |
+|------|-------------|
+| `-s`, `--suite` | YAML benchmark suite (required) |
+| `-c`, `--policy` | Policy YAML (required) |
+| `--baseline-outcomes` | JSON with baseline `correct[]` vector for McNemar |
+| `-m`, `--model` | Model name (default `mock-model`) |
+| `-a`, `--adapter` | Capture adapter (default `mock`) |
+| `-j`, `--json` | JSON output |
+
+See [Drift Detection](../concepts/drift.md#ci-regression-path-paired-benchmarks-with-oracle).
 
 ## report
 
@@ -155,8 +190,8 @@ Still available for power users:
 |----------|---------|
 | `CNGX_PROXY_HOST` | Proxy bind host (default `127.0.0.1`) |
 | `CNGX_PROXY_PORT` | Proxy port (default `8642`) |
-| `OPENAI_API_KEY` | Forward OpenAI traffic |
-| `ANTHROPIC_API_KEY` | Forward Anthropic traffic |
-| `GOOGLE_API_KEY` | Gemini adapter / proxy |
+| `OPENAI_API_KEY` | Forward OpenAI traffic through the local proxy |
+| `ANTHROPIC_API_KEY` | Forward Anthropic traffic through the local proxy |
+| `GOOGLE_API_KEY` | Gemini **capture adapter** for `cngx check` / `cngx capture` (not used by the local proxy) |
 
-API keys are read from the environment for forwarding only, never logged or written to DuckDB.
+API keys are read from the environment for forwarding or adapter capture only, never logged or written to DuckDB.

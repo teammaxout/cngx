@@ -54,7 +54,7 @@ The official **google-genai** Python SDK does **not** read a base-URL environmen
 - use manual proxy configuration in code (`http_options.base_url`), or
 - use the [manual base URL setup](proxy-and-privacy.md) if your tool supports it.
 
-The JavaScript `@google/genai` SDK supports `GOOGLE_GEMINI_BASE_URL`; cngx does not set that today because the proxy path is OpenAI/Anthropic-shaped in v0.1.0.
+The JavaScript `@google/genai` SDK supports `GOOGLE_GEMINI_BASE_URL`; cngx does not set that today because the proxy path is OpenAI/Anthropic-shaped in v0.1.5.
 
 ## Live dashboard (optional)
 

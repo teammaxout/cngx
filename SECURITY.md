@@ -4,11 +4,9 @@
 
 **Do not open a public GitHub issue for security bugs.**
 
-Report vulnerabilities privately:
+Report vulnerabilities privately via [GitHub private vulnerability reporting](https://github.com/aadi-joshi/cngx/security/advisories/new) on this repository.
 
-1. **TODO(human):** Add a dedicated security contact (e.g. `security@yourdomain.com`) or use [GitHub private vulnerability reporting](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability) for this repository.
-2. Until that is configured, use the repository owner’s contact method listed on the GitHub org/profile page.
-3. Include: description, steps to reproduce, affected versions, and impact.
+Include: description, steps to reproduce, affected versions, and impact.
 
 We aim to acknowledge reports within **48 hours** and will coordinate disclosure before any public fix.
 
@@ -18,12 +16,12 @@ cngx is **local-first**:
 
 | Data | Behavior |
 |------|----------|
-| Provider API keys (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, etc.) | Read from the environment for request forwarding only. Held **in memory** for the duration of a single proxied request. **Never logged, never persisted, never written to DuckDB.** |
+| Provider API keys (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `GEMINI_API_KEY`, etc.) | Read from the environment for request forwarding only. Held **in memory** for the duration of a single proxied request. **Never logged, never persisted, never written to DuckDB.** |
 | Captured traces and fingerprints | Stored locally under `.cngx/` (DuckDB). Stays on your machine unless you copy it elsewhere. |
 | Telemetry | **None.** No phone-home, no usage analytics, no crash reporting to a vendor backend. |
 | Outbound network (proxy) | Only traffic you initiate: forwarded requests to the LLM provider you configured. |
 
-The only exception is **`cngx submit`**: optional sharing of allowlisted drift summaries to the community tracker, with an **explicit preview-and-confirm** step before anything is sent. Nothing is uploaded by default.
+The only exception is **`cngx submit`**: optional sharing of allowlisted drift summaries to the community tracker, with an **explicit preview-and-confirm** step before anything is sent. Nothing is uploaded by default. CDN/API access logs may still exist on the tracker infrastructure; the submit payload itself contains no prompts or outputs.
 
 ## Scope
 
@@ -38,11 +36,8 @@ The only exception is **`cngx submit`**: optional sharing of allowlisted drift s
 
 - Vulnerabilities in upstream LLM provider APIs
 - Issues that require the reporter to already have full shell access on the machine running cngx
-- Denial of service from intentionally flooding the local proxy on localhost
+- Social engineering or physical access attacks
 
 ## Supported versions
 
-| Version | Supported |
-|---------|-----------|
-| 0.1.x   | Yes       |
-| < 0.1   | No        |
+Security fixes land on the latest `0.1.x` release on PyPI and GitHub Releases.

@@ -34,6 +34,20 @@ cngx check \
 
 Copy `examples/contracts/coding_agent_verification.yaml` into your repo, or start with `coding_agent_verification_lenient.yaml` for softer onboarding.
 
+## Evidence file (optional)
+
+Offline policies score the *text* of agent output. An agent that fabricates "12 passed" without running tests can still pass text-only checks. Pass `--evidence-file` with a real tool log so cngx also requires a concrete result line:
+
+```bash
+cngx check \
+  -c examples/contracts/coding_agent_verification.yaml \
+  -p "Fix the pagination bug and run tests before merge" \
+  --output-file output.txt \
+  --evidence-file pytest.log
+```
+
+The evidence file must look like real tool output (for example a pytest log containing `N passed`). In GitHub Actions, set the `evidence-file` input. See [GitHub Action](github-action.md).
+
 ## Exit codes
 
 | Code | Meaning | CI action |
@@ -82,7 +96,7 @@ jobs:
       # - run: ./run-agent.sh > agent_output.txt
 
       - name: cngx policy gate
-        uses: aadi-joshi/cngx@v0.1.4
+        uses: aadi-joshi/cngx@v0.1.5
         with:
           policy: policies/coding_agent_verification.yaml
           prompt: "Fix the bug and run the test suite before merge"

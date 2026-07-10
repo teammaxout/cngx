@@ -9,11 +9,7 @@ The **cngx Drift Tracker** is a static site showing behavioral fingerprint trend
 
 ## Demo
 
-![cngx drift tracker walkthrough](../assets/tracker-demo.gif)
-
-[Full recording (MP4, 1280x720)](../assets/tracker-demo.mp4) · [Static screenshot](../assets/tracker-demo.png)
-
-The GIF autoplays in GitHub READMEs; the MP4 is the full-quality version for docs and releases.
+See the live tracker: [aadi-joshi.github.io/cngx](https://aadi-joshi.github.io/cngx/)
 
 ## What it shows
 
@@ -47,17 +43,12 @@ Schema details: [tracker/README.md](https://github.com/aadi-joshi/cngx/blob/main
 
 A separate workflow (`tracker-probe.yml`) can run a small API battery **only if** a repository admin sets `ENABLE_TRACKER_PROBE=true`. It is **off by default**, budget-capped at 5 calls/run, and costs real money if enabled. The tracker works fine without it.
 
-## Build and record locally
+## Build locally
 
 ```bash
 python tracker/build.py
 # open tracker/site/index.html
-
-# Regenerate demo assets for README/docs:
-python scripts/demo/record_tracker.py
 ```
-
-See `scripts/demo/README.md` for Playwright setup.
 
 ## Related
 

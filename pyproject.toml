@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cngx"
-version = "0.1.4"
+version = "0.1.5"
 description = "Local CLI that fingerprints coding-agent output and gates merges when verification is missing."
 readme = "README.md"
 license = "MIT"
@@ -105,7 +105,7 @@ cngx = "cngx.cli.main:app"
 [project.urls]
 Homepage = "https://github.com/aadi-joshi/cngx"
 Repository = "https://github.com/aadi-joshi/cngx"
-Documentation = "https://aadi-joshi.github.io/cngx/"
+Documentation = "https://github.com/aadi-joshi/cngx/tree/main/docs"
 "Bug Tracker" = "https://github.com/aadi-joshi/cngx/issues"
 Changelog = "https://github.com/aadi-joshi/cngx/blob/main/CHANGELOG.md"
 

@@ -19,18 +19,17 @@ console = Console()
 app = typer.Typer(
     name="cngx",
     help=(
-        "cngx: policy-check autonomous coding agents on message one (no baseline, no history).\n\n"
-        "Headline: run cngx check on a single response to see whether verification actually "
-        "happened before you trust a diff or merge.\n\n"
-        "Deeper: cngx watch / pin / diff track reasoning drift across long agent sessions."
+        "Policy-check coding agents on message one, then track session drift.\n\n"
+        "Start with: cngx check --output-file agent.txt -c policy.yaml\n"
+        "Long runs: cngx wrap / watch / pin / diff"
     ),
     add_completion=False,
     pretty_exceptions_enable=True,
     pretty_exceptions_short=True,
 )
 
-# Legacy / advanced command groups
-app.add_typer(gate.app, name="gate", help="Policy checks (legacy commands)")
+# Advanced / legacy command groups (prefer top-level check, wrap, watch, pin, diff)
+app.add_typer(gate.app, name="gate", help="Legacy alias for policy checks (prefer: cngx check)")
 app.add_typer(demo.app, name="demo", help="System-level scenarios")
 app.add_typer(capture.app, name="capture", help="Capture reasoning traces")
 app.add_typer(diff.app, name="diff-advanced", help="Compare behaviors (advanced)")

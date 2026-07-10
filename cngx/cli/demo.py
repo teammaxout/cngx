@@ -1,7 +1,7 @@
-"""cngx Demo CLI - System-level demonstration of behavioral contract enforcement.
+"""cngx Demo CLI - System-level demonstration of policy checks and verification gates.
 
 This CLI provides commands to run the system-level demo that shows
-cngx's value as critical infrastructure for AI systems.
+cngx fingerprinting agent output and blocking merges when verification is missing.
 """
 
 import json
@@ -18,7 +18,7 @@ from rich.table import Table
 
 app = typer.Typer(
     name="demo",
-    help="System-level demo showing cngx as behavioral contract enforcement",
+    help="System-level demo: fingerprint agent output and gate on missing verification",
 )
 console = Console()
 
@@ -39,12 +39,13 @@ def demo_run(
 ) -> None:
     """Run the system-level demo.
 
-    This demonstrates cngx's value as an behavioral contract enforcement by showing:
+    Shows how cngx fingerprints coding-agent (or LLM) output and gates
+    merges when required verification is missing:
 
     1. WITHOUT cngx: Silent failure - pipeline completes but reasoning
        assumptions are violated, downstream systems execute unsafely.
 
-    2. WITH cngx: Explicit blocking - contract violations are caught,
+    2. WITH cngx: Explicit blocking - policy violations are caught,
        deployment is blocked, downstream systems are protected.
 
     Example:
@@ -85,13 +86,13 @@ def demo_run(
         console.print()
         console.print(
             Panel(
-                "[bold red]cngx: AI BEHAVIOR FIREWALL[/]\n\n"
-                "[bold]SYSTEM-LEVEL DEMONSTRATION[/]\n\n"
-                "This demo shows cngx protecting AI systems from silent reasoning failures.\n"
-                "Real AI systems trust LLM reasoning. When that reasoning degrades,\n"
-                "traditional monitoring cannot detect it. cngx can.",
-                title="[bold magenta]🛡️ DEMO[/]",
-                border_style="red",
+                "[bold]cngx: verification gate demo[/]\n\n"
+                "Local CLI that fingerprints agent/LLM output and blocks\n"
+                "when required verification is missing.\n\n"
+                "Traditional monitoring (latency, errors) cannot detect\n"
+                "missing verification or shallow reasoning. cngx can.",
+                title="[bold]DEMO[/]",
+                border_style="cyan",
             )
         )
         console.print()
@@ -195,9 +196,10 @@ def demo_run(
                 "reasoning quality degradation. The AI still responds, still\n"
                 "produces output, still looks 'healthy'.\n\n"
                 "[bold red]But the reasoning has changed.[/]\n\n"
-                "cngx enforces behavioral contracts that catch these changes\n"
-                "BEFORE they reach downstream systems or production users.\n\n"
-                "[green bold]This is the behavioral contract enforcement.[/]",
+                "cngx runs a policy check that catches missing verification\n"
+                "and shallow reasoning BEFORE they reach merge or downstream\n"
+                "systems.\n\n"
+                "[green bold]This is a verification gate, not a firewall.[/]",
                 title="[bold]Why cngx Matters[/]",
                 border_style="blue",
             )
@@ -220,7 +222,7 @@ def _print_without_cngx_result(result, scenario):
             f"[bold]Downstream Safe:[/] {result.downstream_is_safe}\n"
             f"\n[bold {status_style}]Status: {status_text}[/]"
             + (f"\n\n[dim]{result.silent_failure_description}[/]" if result.silent_failure else ""),
-            title="[bold yellow]⚠️ WITHOUT cngx[/]",
+            title="[bold yellow]WITHOUT cngx[/]",
             border_style="yellow",
         )
     )
@@ -232,12 +234,12 @@ def _print_with_cngx_result(result, scenario):
         status_style = "red"
         status_text = "DEPLOYMENT BLOCKED"
         border = "red"
-        icon = "🛑"
+        icon = "BLOCKED"
     else:
         status_style = "green"
         status_text = "DEPLOYMENT ALLOWED"
         border = "green"
-        icon = "✓"
+        icon = "OK"
 
     violations_text = ""
     if result.gate_result and result.gate_result.violations:
@@ -313,21 +315,22 @@ def explain() -> None:
     console.print(
         Panel(
             "[bold]THE SOLUTION[/]\n\n"
-            "cngx acts as a FIREWALL between AI reasoning and downstream systems.\n\n"
-            "[bold cyan]Behavior Contracts[/] define what valid reasoning looks like:\n"
+            "cngx fingerprints agent/LLM output and runs a policy check\n"
+            "before you merge or ship.\n\n"
+            "[bold cyan]Policies[/] define what valid output looks like:\n"
             "  • Minimum reasoning depth\n"
             "  • Required verification steps\n"
             "  • Forbidden patterns (e.g., 'I cannot')\n"
             "  • Required patterns (e.g., numeric output for math)\n\n"
-            "[bold cyan]Policy check[/] validates behavior before release:\n"
+            "[bold cyan]Policy check[/] validates before release:\n"
             "  • BLOCK severity → EXIT CODE 1 → Cannot deploy\n"
             "  • FAIL severity → EXIT CODE 2 → Review required\n"
             "  • WARN severity → EXIT CODE 0 → Logged but allowed\n\n"
             "[bold green]Result:[/]\n"
             "  • Silent failures become explicit failures\n"
-            "  • Reasoning regressions are caught in CI/CD\n"
+            "  • Missing verification is caught in CI\n"
             "  • Downstream systems are protected\n"
-            "  • Model upgrades are VALIDATED before shipping",
+            "  • Model upgrades are checked before shipping",
             title="[bold green]With cngx[/]",
             border_style="green",
         )
@@ -353,7 +356,7 @@ def quick_demo() -> None:
     )
 
     console.print()
-    console.print("[bold red]cngx: AI BEHAVIOR FIREWALL[/]")
+    console.print("[bold]cngx: verification gate[/]")
     console.print("[dim]Quick demonstration (30 seconds)[/]")
     console.print()
 
@@ -367,13 +370,13 @@ def quick_demo() -> None:
     time.sleep(1)
 
     # Step 2: The contract
-    console.print("[bold cyan]STEP 2: Define Behavior Contract[/]")
+    console.print("[bold cyan]STEP 2: Define a policy[/]")
     contract = BehaviorContract(
         name="math_tutor",
         depth=DepthConstraint(min=4, severity=Severity.BLOCK),
         verification=VerificationConstraint(required=True, severity=Severity.BLOCK),
     )
-    console.print(f"  Contract: {contract.name}")
+    console.print(f"  Policy: {contract.name}")
     console.print("  Requires: depth >= 4, verification required")
     console.print("  Blocks deployment on violation")
     console.print()
@@ -421,7 +424,7 @@ def quick_demo() -> None:
         )
 
     console.print()
-    console.print("[bold]This is the behavioral contract enforcement.[/]")
-    console.print("[dim]Model upgrades are validated before shipping.[/]")
+    console.print("[bold]This is a verification gate.[/]")
+    console.print("[dim]Model upgrades are checked before shipping.[/]")
 
     raise typer.Exit(result.exit_code)

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-cngx KILLER DEMO: Model Upgrade Breaks Deployment
+cngx demo: model upgrade fails the verification gate
 
-This demo shows the core value proposition of cngx as an behavioral contract enforcement:
+Shows the core value of cngx as a local verification gate:
 
-  A model upgrade that produces correct answers can STILL violate
-  behavioral contracts and get BLOCKED from deployment.
+  A model upgrade that produces correct answers can STILL miss
+  required verification and get BLOCKED from merge/deploy.
 
 NARRATIVE:
-  1. Define a strict math reasoning contract
-  2. Show a model that PASSES the contract
+  1. Define a strict math reasoning policy
+  2. Show a model that PASSES the policy
   3. Simulate a model "upgrade" with degraded reasoning
   4. cngx BLOCKS the deployment
 
@@ -43,15 +43,15 @@ def print_header():
     console.print()
     console.print(
         Panel(
-            "[bold red]cngx: AI BEHAVIOR FIREWALL[/]\n\n"
+            "[bold]cngx: verification gate[/]\n\n"
             "[bold]SCENARIO: Model Upgrade Regression[/]\n\n"
             "You deploy an AI system for math tutoring.\n"
-            "Your contract requires step-by-step reasoning + verification.\n"
+            "Your policy requires step-by-step reasoning + verification.\n"
             "A model upgrade produces correct answers with LESS reasoning.\n\n"
             "[yellow bold]Without cngx:[/] Silent regression ships to production.\n"
             "[green bold]With cngx:[/] Deployment BLOCKED. Regression caught.",
-            title="[bold magenta]KILLER DEMO[/]",
-            border_style="red",
+            title="[bold]DEMO[/]",
+            border_style="cyan",
         )
     )
     console.print()
@@ -123,8 +123,8 @@ def run_demo():
     # Create contract
     contract = create_contract()
 
-    console.print("[bold cyan]STEP 1: Define Behavior Contract[/]")
-    console.print(f"  Contract: [bold]{contract.name}[/]")
+    console.print("[bold cyan]STEP 1: Define Behavior Policy[/]")
+    console.print(f"  Policy: [bold]{contract.name}[/]")
     console.print(f"  Domain: {contract.domain.value}")
     console.print(f"  Requires: depth >= 3, steps >= 3, verification REQUIRED")
     console.print(f"  Blocks on: Missing verification, refusal")
@@ -209,14 +209,14 @@ def run_demo():
                 "  • Latency spikes\n"
                 "  • Error rates  \n"
                 "  • Token usage\n\n"
-                "[bold red]cngx Behavior Firewall Catches:[/]\n"
+                "[bold]cngx Policy Check Catches:[/]\n"
                 "  • Reasoning depth regression\n"
                 "  • Skipped verification steps\n"
                 "  • Changed reasoning patterns\n"
                 "  • Capability degradation\n\n"
-                "[magenta bold]The model may still produce correct answers.[/]\n"
-                "[magenta bold]But HOW it reasons has changed.[/]\n"
-                "[magenta bold]That's what cngx blocks.[/]",
+                "The model may still produce correct answers.\n"
+                "But HOW it reasons has changed.\n"
+                "That is what the verification gate blocks.",
                 title="[bold]Why This Matters[/]",
             )
         )

@@ -20,8 +20,8 @@ Manual base URL configuration remains for tools that ignore env overrides.
 
 1. Accepts OpenAI-compatible (`/v1/chat/completions`) and Anthropic-shaped (`/v1/messages`) requests
 2. Forwards them to the real provider with your API key from the environment
-3. Streams the response back **without added latency**
-4. Fingerprints a **copy** of the completed response in the background
+3. Streams the response back through one local hop (proxy on loopback)
+4. Fingerprints a **copy** of the completed response in the background after the response completes
 
 Implementation: `cngx/proxy/`
 
