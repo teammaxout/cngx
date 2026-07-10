@@ -91,7 +91,19 @@ class Histogram:
         name: str,
         description: str,
         labels: list[str],
-        buckets: tuple[float, ...] = (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
+        buckets: tuple[float, ...] = (
+            0.005,
+            0.01,
+            0.025,
+            0.05,
+            0.1,
+            0.25,
+            0.5,
+            1.0,
+            2.5,
+            5.0,
+            10.0,
+        ),
     ):
         self.name = name
         self.description = description
@@ -122,9 +134,7 @@ class Histogram:
                 cumulative = 0
                 for i, bound in enumerate(self.buckets):
                     cumulative += self._counts[key][i]
-                    bucket_labels = (
-                        f'{label_str},le="{bound}"' if label_str else f'le="{bound}"'
-                    )
+                    bucket_labels = f'{label_str},le="{bound}"' if label_str else f'le="{bound}"'
                     lines.append(f"{self.name}_bucket{{{bucket_labels}}} {cumulative}")
                 inf_labels = f'{label_str},le="+Inf"' if label_str else 'le="+Inf"'
                 lines.append(f"{self.name}_bucket{{{inf_labels}}} {self._totals[key]}")

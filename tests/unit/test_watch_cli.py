@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+import re
 from unittest.mock import MagicMock, patch
 
 from typer.testing import CliRunner
 
 from cngx.cli.main import app
 from cngx.cli.watch import run_watch
+
+_ANSI = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def _plain(text: str) -> str:
+    return _ANSI.sub("", text)
 
 
 def test_run_watch_accepts_plain_python_defaults() -> None:
@@ -40,5 +47,6 @@ def test_watch_cli_help_lists_new_flags() -> None:
     runner = CliRunner()
     result = runner.invoke(app, ["watch", "--help"])
     assert result.exit_code == 0
-    assert "--session-id" in result.output
-    assert "--otel" in result.output
+    help_text = _plain(result.output)
+    assert "--session-id" in help_text
+    assert "--otel" in help_text

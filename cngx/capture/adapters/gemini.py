@@ -89,9 +89,7 @@ class GeminiAdapter(BaseAdapter):
         # Accept either env name; Google SDK docs use GOOGLE_API_KEY, many
         # projects (and this repo's .env.example) use GEMINI_API_KEY.
         self.api_key = (
-            api_key
-            or os.environ.get("GOOGLE_API_KEY")
-            or os.environ.get("GEMINI_API_KEY")
+            api_key or os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
         )
         if not self.api_key:
             raise AdapterError(
