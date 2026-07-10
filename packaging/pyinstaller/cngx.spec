@@ -24,14 +24,16 @@ REQUIRED = (
     "pydantic_settings",
     "annotated_types",
     "typing_extensions",
+    "typer",
+    "click",
+    "rich",
+    "shellingham",
 )
 OPTIONAL = (
     "duckdb",
     "frouros",
     "scipy",
     "numpy",
-    "typer",
-    "rich",
     "httpx",
     "anyio",
     "httpcore",
@@ -48,8 +50,6 @@ OPTIONAL = (
     "openai",
     "dotenv",
     "anthropic",
-    "click",
-    "shellingham",
 )
 
 for pkg in REQUIRED + OPTIONAL:

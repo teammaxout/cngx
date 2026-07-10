@@ -39,9 +39,11 @@ jobs:
           python -m build
 
       - name: Install built package and PyInstaller
+        shell: bash
         run: |
           python -m pip install dist/*.whl
           python -m pip install "pyinstaller>=6.0.0"
+          python -c "import typer, pydantic, cngx; print('deps ok', cngx.__version__, typer.__version__)"
 
       - name: Build standalone executable
         run: pyinstaller packaging/pyinstaller/cngx.spec --noconfirm
