@@ -169,7 +169,7 @@ Be thorough. This output feeds into downstream systems that trust your reasoning
     # Capture trace
     trace = tracer.capture(
         prompt=prompt,
-        task_id=f"rvc_demo_{scenario.scenario_type.value}",
+        task_id=f"cngx_demo_{scenario.scenario_type.value}",
         save=True,
     )
 
@@ -182,14 +182,14 @@ Be thorough. This output feeds into downstream systems that trust your reasoning
 
     # Create pipeline result for comparison
     pipeline_result = PipelineResult(
-        pipeline_id=f"rvc_{trace.id}",
+        pipeline_id=f"cngx_{trace.id}",
         scenario=scenario.name,
         model=scenario.pipeline_config.model,
         completed=True,
         success=not gate_result.blocked,
         trace_id=trace.id,
         cngx_blocked=gate_result.blocked,
-        rvc_violations=[v.model_dump() for v in gate_result.violations],
+        cngx_violations=[v.model_dump() for v in gate_result.violations],
         final_answer=trace.output[:500] if trace.output else None,
     )
 

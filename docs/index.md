@@ -4,21 +4,23 @@
 
 # cngx
 
-**Long autonomous agent runs can look fine turn by turn while reasoning quietly collapses mid-session.**
+**cngx checks whether a coding agent actually ran the verification your policy requires before you trust its output.**
 
-**cngx is a local proxy that fingerprints how your coding agent reasons across an entire session, flags when verification behavior flattens out, and compares each turn to a baseline you pinned. No account. No cloud.**
+Local proxy + offline CI gate. No account. No cloud.
 
 ## What it does
 
-1. **Wrap** run any agent CLI through the local proxy with zero code changes (`cngx wrap -- aider`).
-2. **Capture** intercept LLM traffic through that proxy (or direct adapter calls).
-3. **Fingerprint** extract numeric behavioral metrics from each response (depth, verification steps, hedging, and more).
-4. **Track sessions** tag each turn with session id and turn number; detect verification variance collapse over long runs.
-5. **Pin** save a baseline fingerprint for a task/model pair.
-6. **Diff** compare new traffic against that baseline; alert only on corroborated statistical outliers.
-7. **Check** validate a single prompt against a YAML policy in CI.
+1. **Check** gate existing agent output offline (`cngx check --output-file`) or live against a provider.
+2. **Wrap** run any agent CLI through the local proxy with zero code changes (`cngx wrap -- aider`).
+3. **Capture** intercept LLM traffic through that proxy (or direct adapter calls).
+4. **Fingerprint** extract numeric behavioral metrics from each response (depth, verification steps, hedging, and more).
+5. **Track sessions** tag each turn with session id and turn number; detect verification variance collapse over long runs.
+6. **Pin** save a baseline fingerprint for a task/model pair.
+7. **Diff** compare new traffic against that baseline; alert only on corroborated statistical outliers.
 
 Nothing requires a cloud account. Data stays on your machine unless you explicitly run `cngx submit`.
+
+Honest limit: offline policies score the *text* of agent output. Pair with real CI artifacts when you need proof of execution.
 
 ## Quick start
 
@@ -33,7 +35,7 @@ Standalone binaries (no Python) are on [GitHub Releases](https://github.com/aadi
 
 `quickstart` runs in under a minute with **no API keys** and shows shallow reasoning blocked by a policy.
 
-![cngx quickstart demo](assets/quickstart.gif)
+![cngx quickstart demo](assets/quickstart.svg)
 
 ## Recommended usage with an agent
 
@@ -76,7 +78,7 @@ See [Positioning and comparisons](concepts/positioning.md) for Guardian Runtime 
 | [Proxy & Privacy](guides/proxy-and-privacy.md) | What leaves your machine (nothing by default) |
 | [Public Drift Log](guides/public-drift-log.md) | Community tracker and `cngx submit` |
 | [FAQ](faq.md) | Honest answers to skeptical questions |
-| [Roadmap](roadmap.md) | What's in v0.1.0 and what's deferred |
+| [Roadmap](roadmap.md) | What's in v0.1.x and what's deferred |
 
 ## License
 

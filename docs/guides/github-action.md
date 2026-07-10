@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: cngx policy check
-        uses: aadi-joshi/cngx@v0.1.3
+        uses: aadi-joshi/cngx@v0.1.4
         with:
           policy: policies/basic_reasoning.yaml
           prompt: "What is 15 * 7? Show your reasoning step by step."
@@ -68,14 +68,14 @@ jobs:
       # - run: ./my-agent.sh --task "fix pagination" > agent_output.txt
 
       - name: cngx policy gate
-        uses: aadi-joshi/cngx@v0.1.3
+        uses: aadi-joshi/cngx@v0.1.4
         with:
           policy: policies/coding_agent_verification.yaml
           prompt: "Fix the pagination bug and run tests before merge"
           output-file: agent_output.txt
 
       - name: cngx policy gate (prompt from file)
-        uses: aadi-joshi/cngx@v0.1.3
+        uses: aadi-joshi/cngx@v0.1.4
         with:
           policy: policies/coding_agent_verification.yaml
           prompt-file: tasks/fix_pagination.txt
@@ -90,7 +90,7 @@ See `.github/workflows/example-agent-gate.yml` in this repo for a full dogfoodin
 ## Long prompts (live capture)
 
 ```yaml
-      - uses: aadi-joshi/cngx@v0.1.3
+      - uses: aadi-joshi/cngx@v0.1.4
         with:
           policy: policies/basic_reasoning.yaml
           prompt-file: tests/fixtures/reasoning_prompt.txt
@@ -107,7 +107,7 @@ Set API keys on the job (never commit them). The action forwards them to `cngx c
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     steps:
       - uses: actions/checkout@v4
-      - uses: aadi-joshi/cngx@v0.1.3
+      - uses: aadi-joshi/cngx@v0.1.4
         with:
           policy: policies/basic_reasoning.yaml
           prompt: "Summarize this week's incident report with verification steps."
@@ -118,7 +118,7 @@ Set API keys on the job (never commit them). The action forwards them to `cngx c
 ## JSON output for downstream steps
 
 ```yaml
-      - uses: aadi-joshi/cngx@v0.1.3
+      - uses: aadi-joshi/cngx@v0.1.4
         id: cngx
         with:
           policy: policies/basic_reasoning.yaml

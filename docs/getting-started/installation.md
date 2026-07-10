@@ -30,7 +30,7 @@ cngx version
 Expected output:
 
 ```
-cngx v0.1.0
+cngx v0.1.4
 ```
 
 ## Alternative: standalone binary (no Python)

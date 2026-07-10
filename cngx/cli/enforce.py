@@ -19,7 +19,7 @@ def enforce_run(
     prompt: str = typer.Argument(..., help="The prompt to send to the model"),
     contract: Path = typer.Option(..., "--contract", "-c", help="Path to contract YAML/JSON file"),
     task_id: str = typer.Option("default", "--task", "-t", help="Task identifier"),
-    model: str = typer.Option("gemini-2.5-flash", "--model", "-m", help="Model to use"),
+    model: str = typer.Option("gemini-flash-latest", "--model", "-m", help="Model to use"),
     adapter: str = typer.Option("gemini", "--adapter", "-a", help="Adapter (openai, gemini, mock)"),
     system: Optional[str] = typer.Option(None, "--system", "-s", help="System message"),
     strict: bool = typer.Option(True, "--strict/--lenient", help="Fail on any violation"),
@@ -210,7 +210,7 @@ def enforce_compare(
     """Compare policy results across multiple models.
 
     Example:
-        cngx enforce compare --contract reasoning.yaml --prompt "Explain X" --models gpt-4o,gemini-2.5-flash
+        cngx enforce compare --contract reasoning.yaml --prompt "Explain X" --models gpt-4o,gemini-flash-latest
     """
     import time
 

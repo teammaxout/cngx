@@ -4,18 +4,15 @@ Lightweight, dependency-free metrics collection that exposes a /metrics
 endpoint in Prometheus exposition format. No external dependency required.
 
 Collected metrics:
-- rvc_enforcements_total (counter): Total enforcement checks by result
-- rvc_enforcement_latency_seconds (histogram): Enforcement check latency
-- rvc_active_organizations (gauge): Currently active organizations
-- rvc_contracts_total (gauge): Total contracts in registry
-- rvc_violations_total (counter): Violations by severity and constraint
-- rvc_webhook_deliveries_total (counter): Webhook delivery attempts
+- cngx_enforcements_total (counter): Total policy checks by result
+- cngx_enforcement_latency_seconds (histogram): Policy check latency
+- cngx_violations_total (counter): Violations by severity and constraint
+- cngx_api_requests_total (counter): Local server/proxy request counts
 """
 
 import threading
-import time
 from collections import defaultdict
-from typing import Any, Optional
+from typing import Optional
 
 
 class Counter:
@@ -69,9 +66,7 @@ class Gauge:
             self._values[key] += amount
 
     def dec(self, amount: float = 1.0, **label_values: str) -> None:
-        key = tuple(label_values.get(l, "") for l in self.labels)
-        with self._lock:
-            self._values[key] -= amount
+        self.inc(-amount, **label_values)
 
     def collect(self) -> list[str]:
         lines = [
@@ -89,24 +84,20 @@ class Gauge:
 
 
 class Histogram:
-    """Thread-safe histogram metric with configurable buckets."""
-
-    DEFAULT_BUCKETS = (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0)
+    """Thread-safe histogram with fixed buckets."""
 
     def __init__(
         self,
         name: str,
         description: str,
         labels: list[str],
-        buckets: Optional[tuple[float, ...]] = None,
+        buckets: tuple[float, ...] = (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
     ):
         self.name = name
         self.description = description
         self.labels = labels
-        self.buckets = buckets or self.DEFAULT_BUCKETS
-        self._counts: dict[tuple, dict[float, int]] = defaultdict(
-            lambda: {b: 0 for b in self.buckets}
-        )
+        self.buckets = buckets
+        self._counts: dict[tuple, list[int]] = defaultdict(lambda: [0] * len(buckets))
         self._sums: dict[tuple, float] = defaultdict(float)
         self._totals: dict[tuple, int] = defaultdict(int)
         self._lock = threading.Lock()
@@ -116,9 +107,9 @@ class Histogram:
         with self._lock:
             self._sums[key] += value
             self._totals[key] += 1
-            for bucket in self.buckets:
-                if value <= bucket:
-                    self._counts[key][bucket] += 1
+            for i, bound in enumerate(self.buckets):
+                if value <= bound:
+                    self._counts[key][i] += 1
 
     def collect(self) -> list[str]:
         lines = [
@@ -126,15 +117,17 @@ class Histogram:
             f"# TYPE {self.name} histogram",
         ]
         with self._lock:
-            for key in sorted(set(list(self._counts.keys()) + list(self._sums.keys()))):
+            for key in sorted(self._sums.keys()):
                 label_str = ",".join(f'{l}="{v}"' for l, v in zip(self.labels, key) if v)
-                base = f"{self.name}{{{label_str}," if label_str else f"{self.name}{{"
-
                 cumulative = 0
-                for bucket in self.buckets:
-                    cumulative += self._counts[key].get(bucket, 0)
-                    lines.append(f'{base}le="{bucket}"}} {cumulative}')
-                lines.append(f'{base}le="+Inf"}} {self._totals[key]}')
+                for i, bound in enumerate(self.buckets):
+                    cumulative += self._counts[key][i]
+                    bucket_labels = (
+                        f'{label_str},le="{bound}"' if label_str else f'le="{bound}"'
+                    )
+                    lines.append(f"{self.name}_bucket{{{bucket_labels}}} {cumulative}")
+                inf_labels = f'{label_str},le="+Inf"' if label_str else 'le="+Inf"'
+                lines.append(f"{self.name}_bucket{{{inf_labels}}} {self._totals[key]}")
                 sum_label = f"{self.name}_sum{{{label_str}}}" if label_str else f"{self.name}_sum"
                 count_label = (
                     f"{self.name}_count{{{label_str}}}" if label_str else f"{self.name}_count"
@@ -144,49 +137,29 @@ class Histogram:
         return lines
 
 
-# ---------------------------------------------------------------------------
-# cngx Metrics Collector
-# ---------------------------------------------------------------------------
-
-
 class MetricsCollector:
-    """Central metrics collector for cngx Cloud."""
+    """Central metrics collector for local cngx runs."""
 
     def __init__(self):
         self.enforcements_total = Counter(
-            "rvc_enforcements_total",
-            "Total enforcement checks",
+            "cngx_enforcements_total",
+            "Total policy checks",
             ["result", "contract", "model"],
         )
         self.enforcement_latency = Histogram(
-            "rvc_enforcement_latency_seconds",
-            "Enforcement check latency in seconds",
+            "cngx_enforcement_latency_seconds",
+            "Policy check latency in seconds",
             ["contract"],
             buckets=(0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
         )
         self.violations_total = Counter(
-            "rvc_violations_total",
-            "Total contract violations",
+            "cngx_violations_total",
+            "Total policy violations",
             ["severity", "constraint"],
         )
-        self.active_orgs = Gauge(
-            "rvc_active_organizations",
-            "Currently active organizations",
-            [],
-        )
-        self.contracts_total = Gauge(
-            "rvc_contracts_total",
-            "Total contracts in registry",
-            ["org_id"],
-        )
-        self.webhook_deliveries = Counter(
-            "rvc_webhook_deliveries_total",
-            "Webhook delivery attempts",
-            ["status", "event"],
-        )
         self.api_requests_total = Counter(
-            "rvc_api_requests_total",
-            "Total API requests",
+            "cngx_api_requests_total",
+            "Total local API/proxy requests",
             ["method", "endpoint", "status"],
         )
 
@@ -198,7 +171,7 @@ class MetricsCollector:
         latency_seconds: float,
         violations: Optional[list[dict]] = None,
     ) -> None:
-        """Record an enforcement event."""
+        """Record a policy enforcement event."""
         self.enforcements_total.inc(result=result, contract=contract, model=model)
         self.enforcement_latency.observe(latency_seconds, contract=contract)
 
@@ -216,9 +189,6 @@ class MetricsCollector:
             self.enforcements_total,
             self.enforcement_latency,
             self.violations_total,
-            self.active_orgs,
-            self.contracts_total,
-            self.webhook_deliveries,
             self.api_requests_total,
         ]:
             all_lines.extend(metric.collect())

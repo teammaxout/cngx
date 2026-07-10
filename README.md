@@ -25,11 +25,11 @@ Live one-shot check against a provider:
 cngx check -c examples/contracts/basic_reasoning.yaml "Fix the bug and run the test suite"
 ```
 
-Python 3.10+. Requires [pipx](https://pipx.pypa.io/) or `pip install cngx`. See [installation](docs/getting-started/installation.md).
+Python 3.10+. Requires [pipx](https://pipx.pypa.io/) or `pip install cngx`. See [installation](https://github.com/aadi-joshi/cngx/blob/main/docs/getting-started/installation.md).
 
 ## What it does
 
-**Message one (offline CI):** `cngx check --output-file` fingerprints agent text you already have and enforces a behavior policy. Did the agent run tests and show verification, or only sound merge-ready?
+**Message one (offline CI):** `cngx check --output-file` fingerprints agent text you already have and enforces a behavior policy. Did the agent show test evidence, or only sound merge-ready?
 
 **Message one (live):** `cngx check` with a provider adapter fingerprints a single response the same way.
 
@@ -42,6 +42,8 @@ Python 3.10+. Requires [pipx](https://pipx.pypa.io/) or `pip install cngx`. See 
               ├── cngx check / policy gate (optional)
               └── diff vs pinned baseline (session drift)
 ```
+
+Honest limit: offline policies score the *text* of agent output. An agent that fabricates "12 passed" without running tests can still pass. Pair `cngx check` with real CI artifacts (pytest logs, exit codes) when you need proof of execution.
 
 ## Measured (synthetic benchmarks, alpha=0.05)
 
@@ -61,7 +63,7 @@ Python 3.10+. Requires [pipx](https://pipx.pypa.io/) or `pip install cngx`. See 
 | McNemar suite shift (binary) | p ≈ 0.000002 |
 | Paired permutation (continuous) | p = 0.0002 |
 
-Synthetic draws only. Pin your own baseline on real traffic before treating alerts as production signals. Details: [drift engine](docs/concepts/drift.md), [sessions](docs/concepts/sessions.md).
+Synthetic draws only. Pin your own baseline on real traffic before treating alerts as production signals. Details: [drift engine](https://github.com/aadi-joshi/cngx/blob/main/docs/concepts/drift.md), [sessions](https://github.com/aadi-joshi/cngx/blob/main/docs/concepts/sessions.md).
 
 ## Commands
 
@@ -76,7 +78,7 @@ Synthetic draws only. Pin your own baseline on real traffic before treating aler
 | `cngx diff --baseline baseline` | Compare recent captures to that baseline |
 | `cngx submit --baseline baseline` | Opt-in metrics to the [community tracker](https://aadi-joshi.github.io/cngx/) |
 
-Set `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GOOGLE_API_KEY` for live providers. Keys stay in memory for forwarding; they are not written to the local database.
+Set `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GOOGLE_API_KEY` / `GEMINI_API_KEY` for live providers. Keys stay in memory for forwarding; they are not written to the local database.
 
 ## Local-first
 
@@ -84,11 +86,11 @@ Runs on your machine. Traces and fingerprints live in `.cngx/` (DuckDB). Proxy b
 
 ## Docs
 
-- [Quickstart](docs/getting-started/quickstart.md)
-- [Gate a coding agent in CI](docs/guides/gate-coding-agent.md) (offline, no API keys)
-- [Proxy and privacy](docs/guides/proxy-and-privacy.md)
-- [CLI reference](docs/cli/reference.md)
-- [Contributing](CONTRIBUTING.md)
+- [Quickstart](https://github.com/aadi-joshi/cngx/blob/main/docs/getting-started/quickstart.md)
+- [Gate a coding agent in CI](https://github.com/aadi-joshi/cngx/blob/main/docs/guides/gate-coding-agent.md) (offline, no API keys)
+- [Proxy and privacy](https://github.com/aadi-joshi/cngx/blob/main/docs/guides/proxy-and-privacy.md)
+- [CLI reference](https://github.com/aadi-joshi/cngx/blob/main/docs/cli/reference.md)
+- [Contributing](https://github.com/aadi-joshi/cngx/blob/main/CONTRIBUTING.md)
 
 Created by [Kavya Bhand](https://github.com/kavyabhand) and [Aadi Joshi](https://github.com/aadi-joshi).
 

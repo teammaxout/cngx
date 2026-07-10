@@ -383,7 +383,7 @@ def quick_demo() -> None:
     console.print("[bold cyan]STEP 3: Capture AI Behavior[/]")
     console.print("  [dim]Calling API...[/]")
 
-    tracer = CngxTracer(adapter="gemini", model="gemini-2.5-flash")
+    tracer = CngxTracer(adapter="gemini", model="gemini-flash-latest")
     trace = tracer.capture(
         prompt="What is 15 + 27? Give a brief answer.",
         task_id="quick_demo",

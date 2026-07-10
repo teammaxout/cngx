@@ -11,32 +11,24 @@ from rich.panel import Panel
 
 console = Console(stderr=True)
 
+DEFAULT_HOST = "127.0.0.1"
+DEFAULT_PORT = 8642
+DEFAULT_OTEL_ENDPOINT = "http://localhost:4318"
+
 
 def run_watch(
-    port: int = typer.Option(8642, "--port", "-p", help="Local proxy port"),
-    host: str = typer.Option("127.0.0.1", "--host", help="Bind address (localhost only)"),
-    session_id: Optional[str] = typer.Option(
-        None,
-        "--session-id",
-        help="Explicit session id for multi-turn trajectory tracking",
-    ),
-    semantic: bool = typer.Option(
-        False,
-        "--semantic",
-        help="Enable optional local embedding drift signal (requires cngx[semantic])",
-    ),
-    otel: bool = typer.Option(
-        False,
-        "--otel",
-        help="Forward OTel GenAI spans with fingerprint attributes to OTLP (requires cngx[otel])",
-    ),
-    otel_endpoint: str = typer.Option(
-        "http://localhost:4318",
-        "--otel-endpoint",
-        help="OTLP HTTP endpoint when --otel is set",
-    ),
+    port: int = DEFAULT_PORT,
+    host: str = DEFAULT_HOST,
+    session_id: Optional[str] = None,
+    semantic: bool = False,
+    otel: bool = False,
+    otel_endpoint: str = DEFAULT_OTEL_ENDPOINT,
 ) -> None:
-    """Start local proxy and live dashboard."""
+    """Start local proxy and live dashboard.
+
+    Plain Python defaults so this can be called from ``main.watch`` without
+    Typer OptionInfo objects leaking into runtime.
+    """
     from cngx.core.config import get_config
     from cngx.observability.otel import configure_otel
     from cngx.proxy.analysis import set_semantic_analysis_enabled
@@ -48,7 +40,7 @@ def run_watch(
 
     if otel:
         try:
-            configure_otel(enabled=True, endpoint=otel_endpoint)
+            configure_otel(enabled=True, endpoint=otel_endpoint.rstrip("/"))
         except ImportError as exc:
             console.print(f"[red]{exc}[/]")
             raise typer.Exit(1) from exc

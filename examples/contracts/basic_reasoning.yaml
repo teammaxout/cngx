@@ -1,13 +1,12 @@
-# Reasoning Contract: Basic Reasoning
-# A lenient contract that should pass for most well-formed responses
+# Reasoning policy: basic structure
+# Lenient floor for well-formed responses. Not a quality verdict.
 
 name: basic_reasoning
-version: "1.0.0"
+version: "1.0.1"
 description: |
-  Minimum viable reasoning standards.
-  Most models should pass this contract.
+  Minimum viable reasoning structure.
+  Most models should pass this policy on non-trivial prompts.
 
-# Basic structural requirements
 depth:
   min: 1
   severity: fail
@@ -16,13 +15,9 @@ steps:
   min: 1
   severity: fail
 
-# Output must be substantive
+# Keep this low so concise correct answers are not failed for length alone.
 output:
-  min_length: 20
+  min_length: 8
   severity: fail
-
-# Verification NOT required (lenient)
-# No uncertainty constraints
-# No pattern requirements
 
 fail_on_violation: true

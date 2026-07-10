@@ -65,5 +65,14 @@ required_patterns:
     check_reasoning: false
     severity: fail
     rationale: Merge proposals without evidence of verification are unsafe.
+  - pattern: "\\d+ passed|\\d+ tests? passed|PASSED|All tests passed|exit code 0"
+    description: Must include concrete test-result evidence, not only a claim
+    check_output: true
+    check_reasoning: false
+    severity: block
+    rationale: |
+      Saying "I ran pytest" is cheap to fake. Requiring a result-shaped phrase
+      (e.g. "12 passed") raises the bar. Still not cryptographic proof; pair
+      with CI artifacts when you need execution guarantees.
 
 block_on_violation: true

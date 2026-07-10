@@ -11,16 +11,16 @@ dev: ## Install cngx with all dev dependencies
 	pip install -e ".[all,dev,docs]"
 
 test: ## Run all tests (no API keys needed)
-	python -m pytest tests/ -v --noconftest -x
+	python -m pytest tests/ -q --tb=short
 
 test-unit: ## Run unit tests only
-	python -m pytest tests/unit/ -v --noconftest
+	python -m pytest tests/unit/ -q --tb=short
 
 test-integration: ## Run integration tests
-	python tests/integration/test_e2e_pipeline.py
+	python -m pytest tests/integration/ -q --tb=short
 
 test-coverage: ## Run tests with coverage report
-	python -m pytest tests/ --noconftest --cov=cngx --cov-report=html --cov-report=term
+	python -m pytest tests/ --cov=cngx --cov-report=html --cov-report=term
 
 lint: ## Run linters (ruff)
 	ruff check cngx/ tests/
@@ -61,8 +61,8 @@ demo-e2e: ## Run integration pipeline tests
 	python -m pytest tests/integration/test_full_pipeline.py -v
 
 gate-mock: ## Run a sample gate check with mock adapter
-	cngx gate check "Solve x^2 + 5x + 6 = 0" \
-		--contract contracts/math_correctness.yaml \
+	cngx check -c examples/contracts/basic_reasoning.yaml \
+		"Solve x^2 + 5x + 6 = 0" \
 		--adapter mock \
 		--model mock-model
 

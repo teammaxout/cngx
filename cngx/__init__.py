@@ -1,11 +1,11 @@
 """
-cngx, behavioral contract enforcement for LLM systems.
+cngx, local LLM reasoning fingerprinting and policy checks.
 
 Capture reasoning traces, extract behavioral fingerprints, validate YAML
-contracts, detect drift, and gate deployments in CI/CD.
+policies, detect drift, and gate agent output in CI.
 """
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 __author__ = "cngx Contributors"
 
 from cngx.calibration.confidence import ConfidenceCalibrator

@@ -99,7 +99,7 @@ class PipelineResult(BaseModel):
 
     # cngx gate result (if run with cngx)
     cngx_blocked: bool = False
-    rvc_violations: list[dict] = Field(default_factory=list)
+    cngx_violations: list[dict] = Field(default_factory=list)
 
     def add_stage(self, result: StageResult):
         """Add a stage result."""
@@ -152,7 +152,7 @@ class PipelineConfig(BaseModel):
     """Configuration for the AI decision pipeline."""
 
     # Model settings
-    model: str = "gemini-2.5-flash"
+    model: str = "gemini-flash-latest"
     adapter: str = "gemini"
 
     # Pipeline behavior

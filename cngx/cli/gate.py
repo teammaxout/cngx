@@ -50,7 +50,7 @@ def _output_result(result, json_output: bool, quiet: bool):
 def gate_check(
     prompt: str = typer.Argument(..., help="Prompt to test"),
     contract: Path = typer.Option(..., "--contract", "-c", help="Contract file"),
-    model: str = typer.Option("gemini-2.5-flash", "--model", "-m"),
+    model: str = typer.Option("gemini-flash-latest", "--model", "-m"),
     adapter: str = typer.Option(
         "gemini", "--adapter", "-a", help="Adapter (openai, gemini, claude, mock)"
     ),
@@ -109,7 +109,7 @@ def gate_check(
 def gate_ci(
     prompt: str = typer.Argument(..., help="Prompt to test"),
     contract: Path = typer.Option(..., "--contract", "-c", help="Contract file"),
-    model: str = typer.Option("gemini-2.5-flash", "--model", "-m"),
+    model: str = typer.Option("gemini-flash-latest", "--model", "-m"),
     adapter: str = typer.Option(
         "gemini", "--adapter", "-a", help="Adapter (openai, gemini, claude, mock)"
     ),

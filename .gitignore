@@ -20,6 +20,7 @@ env/
 .ruff_cache/
 .coverage
 htmlcov/
+dev/
 
 # Secrets and local runtime data
 .env

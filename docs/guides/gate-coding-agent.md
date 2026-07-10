@@ -82,7 +82,7 @@ jobs:
       # - run: ./run-agent.sh > agent_output.txt
 
       - name: cngx policy gate
-        uses: aadi-joshi/cngx@v0.1.3
+        uses: aadi-joshi/cngx@v0.1.4
         with:
           policy: policies/coding_agent_verification.yaml
           prompt: "Fix the bug and run the test suite before merge"

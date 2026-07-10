@@ -286,11 +286,11 @@ def render_docs() -> str:
     </aside>
     <main class="docs-content">
       <h1>cngx documentation</h1>
-      <p>Local proxy for long autonomous agent sessions. Fingerprints reasoning shape, tracks session trajectories, flags drift against your pinned baseline. No cloud account required.</p>
+      <p>Local CLI that fingerprints coding-agent output and gates merges when verification is missing. Also proxies long agent sessions for baseline-relative drift. No cloud account required.</p>
 
       <h2 id="overview">overview</h2>
-      <p>cngx watches for silent mid-session reasoning collapse: an agent that still looks fine turn by turn but stops varying how it verifies work over a long unattended run. Per-turn structural drift is a supporting signal.</p>
-      <p>Install with pipx, run agents through <code>cngx wrap</code>, pin a baseline, optionally submit opt-in metrics to this tracker.</p>
+      <p>Day-one use: <code>cngx check --output-file</code> gates agent text in CI with no API keys. Longer runs: wrap the agent, pin a baseline, and watch for mid-session verification collapse.</p>
+      <p>Install with pipx, gate offline or run agents through <code>cngx wrap</code>, optionally submit opt-in metrics to this tracker.</p>
 
       <h2 id="install">install</h2>
       <p><strong>Recommended:</strong> pipx puts <code>cngx</code> on your PATH in an isolated environment. No virtualenv to manage.</p>

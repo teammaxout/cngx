@@ -18,7 +18,7 @@ class GitHubActionGenerator:
     @staticmethod
     def generate(
         python_version: str = "3.11",
-        model: str = "gemini-2.5-flash",
+        model: str = "gemini-flash-latest",
         provider: str = "gemini",
         contract_path: str = "contracts/",
         api_key_secret: str = "GOOGLE_API_KEY",

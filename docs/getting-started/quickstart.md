@@ -13,7 +13,7 @@ cngx quickstart
 
 Terminal demo (recorded with [VHS](https://github.com/charmbracelet/vhs), mock adapter, no API keys):
 
-![cngx quickstart demo](../assets/quickstart.gif)
+![cngx quickstart demo](../assets/quickstart.svg)
 
 The command runs a mock scenario in under 30 seconds:
 

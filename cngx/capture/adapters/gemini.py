@@ -45,16 +45,17 @@ class GeminiAdapter(BaseAdapter):
         trace = adapter.call_sync(prompt="Explain quantum computing")
     """
 
-    # Default model - free tier
-    DEFAULT_MODEL = "gemini-2.5-flash"
+    # Default: rolling flash alias. gemini-2.5-flash is blocked for many new keys.
+    DEFAULT_MODEL = "gemini-flash-latest"
 
     # Model aliases for convenience
     MODEL_ALIASES = {
-        "flash": "gemini-2.5-flash",
+        "flash": "gemini-flash-latest",
         "flash-lite": "gemini-flash-lite-latest",
         "pro": "gemini-pro-latest",
         "flash-2": "gemini-2.0-flash",
         "flash-2.5": "gemini-2.5-flash",
+        "flash-3.5": "gemini-3.5-flash",
     }
 
     def __init__(
@@ -85,11 +86,16 @@ class GeminiAdapter(BaseAdapter):
         resolved_model = self.MODEL_ALIASES.get(model, model)
         super().__init__(model=resolved_model)
 
-        # Get API key
-        self.api_key = api_key or os.environ.get("GOOGLE_API_KEY")
+        # Accept either env name; Google SDK docs use GOOGLE_API_KEY, many
+        # projects (and this repo's .env.example) use GEMINI_API_KEY.
+        self.api_key = (
+            api_key
+            or os.environ.get("GOOGLE_API_KEY")
+            or os.environ.get("GEMINI_API_KEY")
+        )
         if not self.api_key:
             raise AdapterError(
-                "Google API key required. Set GOOGLE_API_KEY environment variable "
+                "Google API key required. Set GOOGLE_API_KEY or GEMINI_API_KEY "
                 "or pass api_key parameter. Get a free key at https://aistudio.google.com"
             )
 
@@ -688,11 +694,11 @@ class GeminiAdapter(BaseAdapter):
 
     @classmethod
     def list_models(cls) -> list[str]:
-        """List available Gemini models."""
+        """List commonly used Gemini model ids and aliases."""
         return [
-            "gemini-1.5-flash",
-            "gemini-1.5-flash-8b",
-            "gemini-1.5-pro",
-            "gemini-1.0-pro",
-            "gemini-2.0-flash-exp",
+            "gemini-flash-latest",
+            "gemini-3.5-flash",
+            "gemini-2.5-flash",
+            "gemini-flash-lite-latest",
+            "gemini-pro-latest",
         ]

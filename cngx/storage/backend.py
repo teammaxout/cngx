@@ -191,7 +191,7 @@ class DuckDBAdapter(StorageBackend):
 class PostgresBackend(StorageBackend):
     """PostgreSQL storage backend.
 
-    Requires psycopg2: pip install cngx[postgres]
+    Requires psycopg2: pip install psycopg2-binary sqlalchemy
     """
 
     def __init__(self, config: StorageConfig):
@@ -200,7 +200,8 @@ class PostgresBackend(StorageBackend):
             import psycopg2.extras
         except ImportError:
             raise ImportError(
-                "PostgreSQL backend requires psycopg2. Install with: pip install cngx[postgres]"
+                "PostgreSQL backend requires psycopg2. "
+                "Install with: pip install psycopg2-binary sqlalchemy"
             )
 
         if not config.postgres_dsn:
@@ -725,7 +726,11 @@ class TraceCompressor:
 
 
 def create_backend(config: StorageConfig | None = None) -> StorageBackend:
-    """Factory: create the appropriate storage backend."""
+    """Factory: create the appropriate storage backend.
+
+    Local-first default is DuckDB. Postgres remains available for advanced
+    self-hosting but is no longer advertised as a PyPI extra.
+    """
     cfg = config or StorageConfig()
     if cfg.backend == "postgres":
         return PostgresBackend(cfg)

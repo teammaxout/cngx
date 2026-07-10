@@ -20,7 +20,7 @@ FROM python:3.11-slim
 
 LABEL maintainer="cngx Contributors"
 LABEL description="cngx local LLM proxy with behavioral fingerprinting"
-LABEL version="0.1.0"
+LABEL version="0.1.4"
 
 RUN groupadd -r cngx && useradd -r -g cngx -d /app -s /sbin/nologin cngx
 

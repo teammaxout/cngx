@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cngx"
-version = "0.1.3"
-description = "cngx, local LLM reasoning fingerprinting, drift detection, and policy checks."
+version = "0.1.4"
+description = "Local CLI that fingerprints coding-agent output and gates merges when verification is missing."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
@@ -14,17 +14,18 @@ authors = [
 ]
 keywords = [
     "llm",
+    "coding-agents",
+    "verification",
     "reasoning",
     "drift-detection",
-    "behavior-contracts",
+    "behavior-policy",
     "behavioral-fingerprinting",
     "ai-safety",
-    "model-evaluation",
     "local-first",
     "policy-check",
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
@@ -81,23 +82,6 @@ gemini = [
 claude = [
     "anthropic>=0.30.0",
 ]
-cloud = [
-    "gunicorn>=21.2.0",
-]
-postgres = [
-    "psycopg2-binary>=2.9.9",
-    "sqlalchemy>=2.0.20",
-]
-platform = [
-    "cngx[postgres]",
-    "sqlalchemy>=2.0.20",
-    "psycopg2-binary>=2.9.9",
-    "redis>=5.0.0",
-    "fastapi>=0.115.0",
-    "uvicorn[standard]>=0.24.0",
-    "pyjwt>=2.8.0",
-    "python-multipart>=0.0.6",
-]
 docs = [
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.4.0",
@@ -112,7 +96,7 @@ otel = [
     "opentelemetry-exporter-otlp-proto-http>=1.20.0",
 ]
 all = [
-    "cngx[gemini,claude,cloud,semantic,otel]",
+    "cngx[gemini,claude,semantic,otel]",
 ]
 
 [project.scripts]
@@ -121,7 +105,7 @@ cngx = "cngx.cli.main:app"
 [project.urls]
 Homepage = "https://github.com/aadi-joshi/cngx"
 Repository = "https://github.com/aadi-joshi/cngx"
-Documentation = "https://github.com/aadi-joshi/cngx#readme"
+Documentation = "https://aadi-joshi.github.io/cngx/"
 "Bug Tracker" = "https://github.com/aadi-joshi/cngx/issues"
 Changelog = "https://github.com/aadi-joshi/cngx/blob/main/CHANGELOG.md"
 
@@ -136,6 +120,7 @@ exclude = [
   "/docs",
   "/site",
   "/dist",
+  "/dev",
 ]
 
 [tool.pytest.ini_options]
