@@ -1,104 +1,123 @@
 # cngx
 
 [![CI](https://github.com/aadi-joshi/cngx/actions/workflows/ci.yml/badge.svg)](https://github.com/aadi-joshi/cngx/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/cngx)](https://pypi.org/project/cngx/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://pypi.org/project/cngx/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**CI gate for coding agents that sound merge-ready but never showed the tests.**
+**Your AI coding agent says "done, all tests pass." cngx runs what it claimed and blocks the merge when that is not true.**
 
-cngx fingerprints agent output and fails the job when your policy requires verification evidence and the text (or log) does not have it.
+AI agents (Cursor, Claude Code, Codex, aider, Cline, PR bots) end almost every task with a confident summary: *"Fixed it, all tests pass, ready to merge."* They usually did not run anything. cngx reads that claim, runs the real checks, and compares. The verdict is bound to actual command output, so it cannot be satisfied by prose.
 
 ```bash
 pipx install cngx
-cngx quickstart          # mock demo, no API keys, under 30s
+cngx quickstart          # 30s, no API keys, no setup
 ```
-
-Gate existing agent output in CI (no provider calls, no API keys):
 
 ```bash
-cngx check -c examples/contracts/coding_agent_verification.yaml \
-  -p "Fix the pagination bug and run tests" \
-  --output-file agent_output.txt
+# in your repo: gate the agent's message against a real test run
+cngx verify --output-file agent_message.md -- pytest
 ```
 
-Live one-shot check against a provider:
+## This is real, not a heuristic
+
+Here is an unedited run against the live OpenAI API. A real `gpt-4o-mini` was asked to fix a bug, then write a PR status. It wrote:
+
+> "I have fixed the issues in the `to_snake_case` function ... After implementing the necessary changes, I ran the test suite, and all tests passed successfully. The code is now ready to merge."
+
+It ran nothing. cngx ran the real tests and blocked it:
+
+```
+BLOCKED  Agent claimed the work is done, but verification failed.
+  Agent said: "all tests pass", "tests pass", "ready to merge"
+  Real result: FAILED (failures=2)
+exit code: 1
+```
+
+Same command, three real outcomes:
+
+| The agent said | Reality (cngx ran it) | Verdict |
+|----------------|------------------------|---------|
+| "all tests pass, ready to merge" | tests fail | **BLOCKED** |
+| "all tests pass" (its fix was wrong) | 1 test fails | **BLOCKED** |
+| returns a correct fix | tests pass | **VERIFIED** |
+
+No baseline, no history, no config. True on the first response.
+
+## How it works
+
+```
+agent message ─┐
+               ├─► cngx verify ─► run your real check (pytest, npm test, ...)
+your command ──┘                     │
+                                     ├─ parse the true result (passed/failed)
+                                     ├─ read what the agent claimed
+                                     └─ BLOCK if the claim and reality disagree
+```
+
+- **Reality wins.** The overall pass/fail comes from the command's real exit code, never from the agent's words.
+- **Catches the specific lie.** If the agent says "12 passed" but the run says "9 passed, 3 failed", that mismatch is blocked too.
+- **Works with any command.** Anything after `--` is your check: `pytest`, `npm test`, `go test ./...`, `cargo test`, `make check`, your own script.
+- **Gives you the receipt.** On a block it prints the real failing output, so you see exactly what broke.
+
+## Use it
+
+Local, against the agent's last message:
 
 ```bash
-cngx check -c examples/contracts/basic_reasoning.yaml "Fix the bug and run the test suite"
+cngx verify --output-file agent_message.md -- pytest -q
 ```
 
-Python 3.10+. Requires [pipx](https://pypa.io/) or `pip install cngx`. See [installation](https://github.com/aadi-joshi/cngx/blob/main/docs/getting-started/installation.md).
+Pipe the claim in:
 
-## What it does
-
-**Message one (offline CI):** `cngx check --output-file` fingerprints agent text you already have and enforces a behavior policy. Did the agent show test evidence, or only sound merge-ready?
-
-**Message one (live):** `cngx check` with a provider adapter fingerprints a single response the same way.
-
-**Long sessions:** `cngx wrap` and `cngx watch` proxy your agent, fingerprint every call, and compare live traffic to a baseline you pin. Alerts use corroborated statistical tests, not length alone.
-
-```
-  agent ──► cngx proxy ──► provider API
-              │
-              ├── fingerprint each response
-              ├── cngx check / policy gate (optional)
-              └── diff vs pinned baseline (session drift)
+```bash
+echo "fixed it, all tests pass" | cngx verify --stdin -- pytest
 ```
 
-Honest limits (read these):
+Gate an existing CI log instead of running (offline, no execution):
 
-- Offline policies score the *text* of agent output. An agent that fabricates "12 passed" without running tests can still pass text-only checks. Pass `--evidence-file pytest.log` (or wire it in the GitHub Action) so cngx also requires a real tool log with a concrete result line.
-- There is **no** measured "saves X% tokens" claim. `wrap`/`watch` observe and alert; they do not cut the upstream connection yet. Do not market this as a cost saver until that exists.
-- The [community tracker](https://aadi-joshi.github.io/cngx/) is opt-in numeric metrics only. Early charts are sparse. Duplicate fingerprint shapes are rejected so the public index cannot be padded with the same response under two baselines.
+```bash
+cngx verify --claim "all tests pass" --evidence-file pytest.log
+```
 
-## Measured (synthetic benchmarks, alpha=0.05)
+In CI with the GitHub Action (blocks the merge on a false claim):
 
-| Scenario | Method | False positive rate |
-|----------|--------|---------------------|
-| Correlated stationary, no drift (250 trials) | Legacy Fisher omnibus | 0.024 (6/250) |
-| Correlated stationary, no drift (250 trials) | CCT batch (current) | 0.024 (6/250) |
-| Independent stationary, no drift (250 trials) | Legacy (>=2 metrics) | 0.016 (4/250) |
-| Independent stationary, no drift (250 trials) | CCT batch (current) | 0.032 (8/250) |
-| Streaming stable series (150 steps) | KSWIN / MDDM | 0.000 (0/150) |
-| Streaming stable series (150 steps) | Legacy ADWIN / Page-Hinkley | 0.000 (0/150) |
+```yaml
+- uses: aadi-joshi/cngx@v0.2.0
+  with:
+    output-file: agent_message.md
+    command: pytest -q
+```
 
-| Detection | Result |
-|-----------|--------|
-| Streaming shift (injected at step 80) | First KSWIN/MDDM alert at step 87 |
-| Session verification collapse (synthetic) | Collapse from turn 13, warning at turn 22 (9-turn delay) |
-| McNemar suite shift (binary) | p ≈ 0.000002 |
-| Paired permutation (continuous) | p = 0.0002 |
+Exit codes: `0` verified, `1` blocked, `2` usage error.
 
-Synthetic draws only. Pin your own baseline on real traffic before treating alerts as production signals. Details: [drift engine](https://github.com/aadi-joshi/cngx/blob/main/docs/concepts/drift.md), [sessions](https://github.com/aadi-joshi/cngx/blob/main/docs/concepts/sessions.md).
+## What it is and is not
+
+- It **binds a claim to a real run**. If your command is a real test suite, a passing agent claim now means the tests actually passed on your machine or in CI.
+- It is **not** a substitute for a good test suite. cngx runs the checks you give it; if your tests are weak, a passing verdict only means those tests passed.
+- The offline `--evidence-file` mode trusts the log you hand it. Run the command directly (`-- pytest`) when you want cngx to produce the evidence itself.
 
 ## Commands
 
 | Command | Use |
 |---------|-----|
-| `cngx quickstart` | Zero-key demo: unverified agent patch blocked |
-| `cngx check -c policy.yaml "…"` | One-shot policy check (CI-friendly exit codes) |
-| `cngx check -c policy.yaml --output-file out.txt` | Gate existing agent output offline |
-| `cngx check ... --evidence-file pytest.log` | Also require a real test log with `N passed` |
-| `cngx wrap -- aider` | Route an OpenAI/Anthropic agent through the local proxy |
-| `cngx watch` | Live dashboard on proxied traffic |
-| `cngx pin --label baseline` | Save normal behavior for a task |
-| `cngx diff --baseline baseline` | Compare recent captures to that baseline |
-| `cngx submit --baseline baseline` | Opt-in metrics to the [community tracker](https://aadi-joshi.github.io/cngx/) |
-
-Set `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GOOGLE_API_KEY` / `GEMINI_API_KEY` for live providers. Keys stay in memory for forwarding; they are not written to the local database.
-
-Gemini cannot use `cngx wrap` / the proxy: the official google-genai SDK ignores base-URL env vars. Use `cngx check --adapter gemini` (or capture) instead.
+| `cngx quickstart` | 30s demo: a real false claim caught, no keys |
+| `cngx verify -- <command>` | Run the check, compare to the agent claim, gate the merge |
+| `cngx verify --output-file agent.md -- pytest` | Read the claim from the agent's message |
+| `cngx verify --evidence-file ci.log` | Gate an existing test log without running |
+| `cngx check -c policy.yaml --output-file agent.md` | Heuristic text policy lint (advanced, gameable; prefer `verify`) |
+| `cngx wrap -- aider` / `cngx watch` | Proxy an agent and watch session behavior drift (advanced) |
 
 ## Local-first
 
-Runs on your machine. Traces and fingerprints live in `.cngx/` (DuckDB). Proxy binds to `127.0.0.1` by default. Nothing leaves the host unless you run `cngx submit` after an explicit preview and confirm (numeric metrics only; no personal identity collected or stored).
+Runs entirely on your machine. Commands run in your shell as you. Nothing is uploaded. Optional trace history lives in `.cngx/` (DuckDB). See [proxy and privacy](https://github.com/aadi-joshi/cngx/blob/main/docs/guides/proxy-and-privacy.md).
 
 ## Docs
 
 - [Quickstart](https://github.com/aadi-joshi/cngx/blob/main/docs/getting-started/quickstart.md)
-- [Gate a coding agent in CI](https://github.com/aadi-joshi/cngx/blob/main/docs/guides/gate-coding-agent.md) (offline, no API keys)
-- [Proxy and privacy](https://github.com/aadi-joshi/cngx/blob/main/docs/guides/proxy-and-privacy.md)
+- [Gate a coding agent in CI](https://github.com/aadi-joshi/cngx/blob/main/docs/guides/gate-coding-agent.md)
 - [CLI reference](https://github.com/aadi-joshi/cngx/blob/main/docs/cli/reference.md)
+- [Session drift (advanced)](https://github.com/aadi-joshi/cngx/blob/main/docs/concepts/drift.md)
 - [Contributing](https://github.com/aadi-joshi/cngx/blob/main/CONTRIBUTING.md)
 
 Created by [Kavya Bhand](https://github.com/kavyabhand) and [Aadi Joshi](https://github.com/aadi-joshi).

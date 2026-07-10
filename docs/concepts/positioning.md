@@ -1,5 +1,8 @@
 # Positioning: who cngx is for
 
+!!! note "Advanced context"
+    This page covers the advanced drift engine and where it sits against similar tools. The headline use case is [`cngx verify`](../getting-started/quickstart.md): run what an AI agent claimed and block a false success claim. The session-drift positioning below applies to the experimental `wrap`/`watch`/`pin`/`diff` features.
+
 cngx is built for **developers running long, unattended autonomous coding agent sessions** (Aider, Cline, Claude Code, OpenClaw, custom scripts) where a silent reasoning collapse is expensive and hard to notice.
 
 The headline failure mode is not "did my chatbot get dumber today?" It is: **an agent that still produces plausible output on every turn but quietly stops verifying its own diffs over a 50-, 200-, or 500-turn run.**

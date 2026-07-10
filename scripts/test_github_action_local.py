@@ -147,6 +147,31 @@ def main() -> int:
             print(f"FAIL: offline verified should pass (exit 0), got {code}", file=sys.stderr)
             return 1
 
+    # verify flow (primary path): a real log with failures must block,
+    # a passing log must verify.
+    with tempfile.TemporaryDirectory() as tmp:
+        fail_log = Path(tmp) / "fail.log"
+        fail_log.write_text("2 failed, 1 passed in 0.4s", encoding="utf-8")
+        code = subprocess.run(
+            ["cngx", "verify", "--claim", "all tests pass", "--evidence-file", str(fail_log)],
+            cwd=ROOT,
+            check=False,
+        ).returncode
+        if code != 1:
+            print(f"FAIL: verify should block failing log (exit 1), got {code}", file=sys.stderr)
+            return 1
+
+        pass_log = Path(tmp) / "pass.log"
+        pass_log.write_text("=== 5 passed in 0.4s ===", encoding="utf-8")
+        code = subprocess.run(
+            ["cngx", "verify", "--claim", "all tests pass", "--evidence-file", str(pass_log)],
+            cwd=ROOT,
+            check=False,
+        ).returncode
+        if code != 0:
+            print(f"FAIL: verify should pass passing log (exit 0), got {code}", file=sys.stderr)
+            return 1
+
     print("action.yml local smoke: OK")
     return 0
 

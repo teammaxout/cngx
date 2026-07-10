@@ -1,32 +1,33 @@
 # cngx Roadmap
 
-cngx **v0.1.7** is a deliberately narrow open-source tool: local fingerprinting,
-offline agent gating, baseline-relative drift, and policy checks. Not a full AI platform.
+cngx **v0.2.0** is a deliberately narrow open-source tool. The flagship is `cngx verify`:
+run the checks an AI agent claimed it ran and block the merge on a false claim. Everything
+else (heuristic policy lint, drift engine, community tracker) is advanced. Not a full AI platform.
 
-## What ships today (v0.1.7)
+## What ships today (v0.2.0)
 
 | Capability | Status |
 |------------|--------|
-| Offline `cngx check --output-file` | Shipped |
-| `--evidence-file` cross-check for pytest/CI logs | Shipped |
-| Coding-agent verification policies | Shipped |
-| Local ASGI proxy (`cngx watch` / `cngx wrap`) | Shipped |
-| Behavioral fingerprinting (regex/heuristic metrics) | Shipped |
-| DuckDB local storage (`.cngx/`) | Shipped |
-| Baseline pinning (`cngx pin`) | Shipped |
-| Multi-metric statistical drift alerts | Shipped |
-| Paired regression suites (`cngx regression`) | Shipped |
-| Live terminal dashboard (Rich TUI) | Shipped |
-| Opt-in public drift tracker (`cngx submit`) | Shipped |
-| Zero-key `cngx quickstart` | Shipped |
-| GitHub Action (offline + live) | Shipped |
+| `cngx verify` (run the claimed command, block false claims) | Shipped |
+| `--output-file` / `--stdin` / `--claim` claim sources | Shipped |
+| Command execution after `--`, or `--evidence-file` for existing logs | Shipped |
+| Result parsers: pytest, unittest, jest/vitest, go test, cargo test, generic | Shipped |
+| `--require-claim`, `--timeout`, `--json` | Shipped |
+| Zero-key `cngx quickstart` (real tests, false claim blocked) | Shipped |
+| GitHub Action with `command` input | Shipped |
+| Advanced: heuristic `cngx check` policy lint | Shipped |
+| Advanced: local ASGI proxy (`cngx watch` / `cngx wrap`) | Shipped |
+| Advanced: behavioral fingerprinting (regex/heuristic metrics) | Shipped |
+| Advanced: baseline pinning and multi-metric drift alerts | Shipped |
+| Advanced: paired regression suites (`cngx regression`) | Shipped |
+| Advanced: opt-in public drift tracker (`cngx submit`) | Shipped |
 
 **Design principles:**
 
+- Verify is bound to real command output; it cannot be gamed by prose
 - Local-first, no account, no telemetry by default
-- Alerts relative to *your* pinned baseline, not universal thresholds
-- Shorter answers alone do not trigger drift
-- Text policies are heuristics; use `--evidence-file` and CI exit codes for stronger gates
+- Text policies (`cngx check`) are heuristics; use `cngx verify` for real proof
+- Advanced drift alerts are relative to *your* pinned baseline, not universal thresholds
 - Privacy: submit shares numeric metrics only, with preview-and-confirm
 
 ## Near-term priorities

@@ -30,7 +30,7 @@ cngx version
 Expected output:
 
 ```
-cngx v0.1.7
+cngx v0.2.0
 ```
 
 ## Alternative: standalone binary (no Python)
@@ -93,7 +93,7 @@ cngx --help
 cngx quickstart
 ```
 
-`quickstart` needs no API keys and completes in under 30 seconds. The full CLI/proxy workflow (`watch`, `wrap`, `pin`, `diff`, `check`) works with pipx, pip, or a standalone binary. **Docker is not required.**
+`quickstart` needs no API keys and completes in about a second. The flagship `cngx verify` command works with pipx, pip, or a standalone binary. The advanced proxy and policy commands (`watch`, `wrap`, `pin`, `diff`, `check`) work the same way. **Docker is not required.**
 
 ## Docker (optional, not default)
 
@@ -108,6 +108,6 @@ See the [Dockerfile](https://github.com/aadi-joshi/cngx/blob/main/Dockerfile) he
 
 ## Next steps
 
-- [Quickstart](quickstart.md), see the core value proposition in one command
-- [Wrap your agent](../guides/wrap-agent.md), zero-code proxy instrumentation
+- [Quickstart](quickstart.md), `cngx verify` in one command
+- [Gate a coding agent](../guides/gate-coding-agent.md), block a false success claim in CI
 - [CLI Reference](../cli/reference.md), full command list

@@ -1,5 +1,8 @@
 # Drift Detection
 
+!!! note "Advanced, experimental"
+    Drift detection (`wrap`/`watch`/`pin`/`diff`) is an advanced, experimental feature for monitoring long agent sessions. It is not the headline. If you want to catch an agent that claims the tests pass when they do not, start with [`cngx verify`](../getting-started/quickstart.md).
+
 Drift detection answers: **"Is this response unusually different from behavior I've already pinned as normal?"**
 
 It does **not** answer: "Is this model worse than last month industry-wide?" or "Is GPT better than Claude?"

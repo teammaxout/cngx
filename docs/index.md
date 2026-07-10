@@ -4,23 +4,33 @@
 
 # cngx
 
-**cngx checks whether a coding agent actually ran the verification your policy requires before you trust its output.**
+**Your AI coding agent says done, tests pass. cngx runs what it claimed and blocks the merge when it is not true.**
 
-Local proxy + offline CI gate. No account. No cloud.
+Local CLI and CI gate. No account. No cloud.
 
-## What it does
+## What `cngx verify` does
 
-1. **Check** gate existing agent output offline (`cngx check --output-file`) or live against a provider. This is the day-one CI path.
-2. **Wrap** run any OpenAI/Anthropic agent CLI through the local proxy (`cngx wrap -- aider`) for fingerprinting and session drift. Wrap does not enforce YAML policies.
-3. **Capture** intercept LLM traffic through that proxy (or direct adapter calls).
-4. **Fingerprint** extract numeric behavioral metrics from each response (depth, verification steps, hedging, and more).
-5. **Track sessions** tag each turn with session id and turn number; detect verification variance collapse over long runs.
-6. **Pin** save a baseline fingerprint for a task/model pair.
-7. **Diff** compare new traffic against that baseline; alert only on corroborated statistical outliers.
+```bash
+cngx verify --output-file agent_message.md -- pytest
+```
 
-Nothing requires a cloud account. Data stays on your machine unless you explicitly run `cngx submit`.
+1. Runs the real command after `--` (anything, for example `pytest`, `npm test`, `go test ./...`).
+2. Reads what the AI agent CLAIMED in its message ("all tests pass, ready to merge").
+3. Parses the true result (passed/failed) from the command output.
+4. BLOCKS (exit 1) when the agent claimed success but the checks actually fail, or when the agent's reported test counts do not match the real run.
 
-Honest limit: offline policies score the *text* of agent output. Pair with real CI artifacts when you need proof of execution.
+The verdict is bound to real command output, so it cannot be gamed by prose.
+
+Example BLOCKED output:
+
+```
+BLOCKED  Agent claimed the work is done, but verification failed.
+  Agent said: "all tests pass", "ready to merge"
+  Real result: FAILED (failures=2)
+exit code: 1
+```
+
+The claim comes from `--output-file FILE`, `--stdin`, or `--claim "text"`. Reality comes from a command after `--` or from `--evidence-file LOG` (an existing log, parsed without running). Exit codes: 0 verified, 1 blocked, 2 usage error. Supported parsers: pytest, unittest, jest/vitest, go test, cargo test, and a generic exit-code fallback.
 
 ## Quick start
 
@@ -33,62 +43,45 @@ Or with pip inside a project environment: `pip install cngx && cngx quickstart`
 
 Standalone binaries (no Python) are on [GitHub Releases](https://github.com/aadi-joshi/cngx/releases).
 
-`quickstart` runs in under a minute with **no API keys** and shows shallow reasoning blocked by a policy.
+`quickstart` runs in about a second with no API keys. It builds a throwaway project with a real bug, runs the actual tests, and shows a false "all tests pass" claim blocked, then a real fix verified.
 
-![cngx quickstart demo](assets/quickstart.svg)
+## In CI
 
-## Recommended usage with an agent
-
-Day one (CI, no API keys):
-
-```bash
-cngx check --output-file agent.txt \
-  -c examples/contracts/coding_agent_verification.yaml \
-  -p "your task"
+```yaml
+- uses: aadi-joshi/cngx@v0.2.0
+  with:
+    output-file: agent_message.md
+    command: pytest -q
 ```
 
-Long sessions (OpenAI/Anthropic only; fingerprints + drift, not policy gates):
+The job fails on a blocked verdict. No provider secrets required. See [Gate a coding agent](guides/gate-coding-agent.md) and the [GitHub Action](guides/github-action.md).
 
-```bash
-cngx init --yes
-cngx wrap -- aider          # or claude, python my_agent.py, etc.
-```
+## Advanced features
 
-In another terminal, optional live dashboard:
+These are not the headline. They exist for power users and are experimental.
 
-```bash
-cngx watch
-```
+- **`cngx check`** scores the *text* of agent output against a YAML policy using regex heuristics. It does not run anything, so a fabricated "all tests passed" claim can satisfy it. Use `cngx verify` for real proof; use `check` only as behavioral linting.
+- **Drift engine** (`wrap` / `watch` / `pin` / `diff`) routes an OpenAI/Anthropic agent through a local proxy, fingerprints reasoning, and flags statistical drift over long sessions. See [Drift Detection](concepts/drift.md) and [Session trajectories](concepts/sessions.md).
+- **Community tracker** (`cngx submit`) shares opt-in numeric metrics to a public drift log. The tracker currently has little to no community data; treat it as an early signal board, not a dataset.
 
-See [Wrap your agent](guides/wrap-agent.md) for env vars, fallbacks, and limitations.
-
-## How it differs from other tooling
-
-| | Output-quality eval tools | Enterprise observability | Local agent firewalls | cngx |
-|---|---------------------------|--------------------------|----------------------|----------|
-| **Persona** | Benchmark / QA teams | ML platform, cloud dashboards | Developers running agents | Developers on long unattended agent runs |
-| **Measures** | Final answers on fixed prompts | Latency, tokens, traces, costs | Spend, secrets, policy blocks | Reasoning shape + session trajectories |
-| **Misses** | Mid-session collapse when each turn looks fine | Local session health for coding agents | Reasoning drift | Universal intelligence scoring |
-
-See [Positioning and comparisons](concepts/positioning.md) for Guardian Runtime and observability platforms, and the [FAQ](faq.md) for skeptical questions answered honestly.
+Nothing requires a cloud account. Data stays on your machine unless you explicitly run `cngx submit`.
 
 ## Documentation map
 
 | Section | What you'll learn |
 |---------|-------------------|
 | [Installation](getting-started/installation.md) | Install from PyPI or source |
-| [Quickstart](getting-started/quickstart.md) | First run with zero configuration |
-| [Wrap your agent](guides/wrap-agent.md) | Zero-code proxy instrumentation (recommended) |
-| [Session trajectories](concepts/sessions.md) | Multi-turn collapse detection |
-| [Positioning](concepts/positioning.md) | Guardian Runtime, observability tools, and cngx's niche |
-| [Fingerprinting](concepts/fingerprinting.md) | What metrics mean (and what they don't) |
-| [Writing a Policy](concepts/policies.md) | YAML policy schema and severity levels |
-| [Drift Detection](concepts/drift.md) | When alerts fire, and when they don't |
-| [CLI Reference](cli/reference.md) | Every command with verified examples |
+| [Quickstart](getting-started/quickstart.md) | `cngx verify` in one command |
+| [Gate a coding agent](guides/gate-coding-agent.md) | Block a false success claim in CI |
+| [CLI Reference](cli/reference.md) | Every command, with `verify` first |
+| [GitHub Action](guides/github-action.md) | The `command` input and CI examples |
+| [Writing a Policy](concepts/policies.md) | YAML policy schema for the advanced `check` |
+| [Drift Detection](concepts/drift.md) | Advanced: session drift alerts |
+| [Session trajectories](concepts/sessions.md) | Advanced: multi-turn collapse detection |
 | [Proxy & Privacy](guides/proxy-and-privacy.md) | What leaves your machine (nothing by default) |
 | [Public Drift Log](guides/public-drift-log.md) | Community tracker and `cngx submit` |
 | [FAQ](faq.md) | Honest answers to skeptical questions |
-| [Roadmap](roadmap.md) | What's in v0.1.x and what's deferred |
+| [Roadmap](roadmap.md) | What's in v0.2.0 and what's deferred |
 
 ## License
 

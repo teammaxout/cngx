@@ -5,6 +5,32 @@ All notable changes to cngx will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-07-10
+
+### Added
+- **`cngx verify`**: the new flagship. Runs the real check an agent claimed it ran
+  (`cngx verify --output-file agent.md -- pytest`), parses the true result, and blocks
+  the merge (exit 1) when the agent claimed success but the checks fail, or when its
+  reported counts do not match the real run. The verdict is bound to actual command
+  output, so it cannot be satisfied by prose.
+- Result parsers for pytest, unittest, jest/vitest, go test, cargo test, and generic
+  exit-code commands.
+- Claim extractor that reads verification assertions from an agent message.
+- `cngx verify --evidence-file` to gate an existing CI/test log without executing.
+
+### Changed
+- **Repositioned around execution truth.** README, quickstart, and the GitHub Action
+  now lead with `verify`. The heuristic text policies (`cngx check`) are demoted to an
+  advanced lint and print a pointer to `verify`, because scoring the prose of agent
+  output can be gamed by a fabricated "all tests passed" claim.
+- `cngx quickstart` now runs real tests in a throwaway project (stdlib unittest, no
+  API keys) and shows a false claim being blocked, then a real fix verified.
+- GitHub Action gains a `command` input for the verify flow; the legacy `policy` path
+  still works.
+
+### Fixed
+- Removed the community tracker seed/test records so charts reflect only real submits.
+
 ## [0.1.10] - 2026-07-10
 
 ### Fixed

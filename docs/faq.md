@@ -1,6 +1,26 @@
 # FAQ
 
-## Isn't this pseudo-science?
+## What does cngx actually do?
+
+`cngx verify` runs the checks your AI coding agent claimed it ran, then compares the claim to reality. Example:
+
+```bash
+cngx verify --output-file agent_message.md -- pytest
+```
+
+It runs pytest, reads what the agent said in `agent_message.md`, and blocks (exit 1) when the agent claimed success but the tests fail, or when the agent's reported test counts do not match the real run. The verdict is bound to real command output, so it cannot be gamed by a "all tests pass" sentence. See the [Quickstart](getting-started/quickstart.md).
+
+## Can an agent just write "all tests pass" to get through?
+
+No. That is the whole point of `cngx verify`. It ignores the prose and runs the real command after `--` (or parses a real log with `--evidence-file`). If the agent says "3 passed, ready to merge" but pytest reports failures, the verdict is BLOCKED. The pass/fail comes from the process exit code, and parsed counts catch a claim that contradicts the real numbers.
+
+This is different from the advanced `cngx check`, which only scores the *text* of agent output with heuristics and can be fooled by a fabricated claim (see below).
+
+## Why is `cngx check` "advanced" and not the headline?
+
+`cngx check` scores the text of agent output against a YAML policy using regex heuristics (verification phrases, reasoning depth, and so on). It does not run anything, so an agent that writes "I ran the tests, all 12 passed" without running anything can satisfy a text-only policy. It is useful as behavioral linting, not as proof of execution. For real proof, use `cngx verify`.
+
+## Isn't the fingerprinting pseudo-science?
 
 Partially, if you expect fingerprints to measure "true reasoning quality."
 

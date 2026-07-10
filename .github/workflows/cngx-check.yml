@@ -121,6 +121,26 @@ jobs:
           prompt: "Fix the pagination bug and run tests before merge"
           output-file: tests/fixtures/agent_outputs/verified_fix.txt
 
+      - name: Write failing test log
+        run: printf '2 failed, 1 passed in 0.4s\n' > /tmp/fail.log
+
+      - name: Run verify action on a false claim (expect block)
+        uses: ./
+        with:
+          install-mode: editable
+          output-file: tests/fixtures/agent_outputs/unverified_patch.txt
+          evidence-file: /tmp/fail.log
+        continue-on-error: true
+        id: verify_block
+
+      - name: Assert verify blocked the false claim
+        run: |
+          if [ "${{ steps.verify_block.outcome }}" != "failure" ]; then
+            echo "Expected verify to block on a failing log"
+            exit 1
+          fi
+          echo "verify correctly blocked the false claim"
+
       - name: Summary
         if: always()
         run: |

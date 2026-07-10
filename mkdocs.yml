@@ -1,5 +1,5 @@
 site_name: cngx
-site_description: "Local proxy for long autonomous agent sessions: reasoning fingerprints, session collapse detection, and policy checks."
+site_description: "Run the checks your AI coding agent claimed it ran, and block the merge on a false claim."
 site_url: https://aadi-joshi.github.io/cngx
 repo_url: https://github.com/aadi-joshi/cngx
 repo_name: aadi-joshi/cngx

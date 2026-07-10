@@ -196,6 +196,12 @@ def run_offline_check(
         console.print(_format_policy_report(result))
         if evidence_payload is not None and evidence_payload["ok"]:
             console.print("[green]Evidence check: OK[/] " f"({evidence_payload['path']})")
+        elif evidence_file is None:
+            console.print(
+                "[dim]note: this scores the text of the output heuristically and can be "
+                "gamed by fabricated claims. To bind a claim to a real run, use "
+                "[cyan]cngx verify -- <command>[/].[/]"
+            )
 
     return result.exit_code
 

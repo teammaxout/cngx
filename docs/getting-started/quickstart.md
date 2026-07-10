@@ -1,80 +1,86 @@
 # Quickstart
 
-The fastest way to understand cngx is to install and run it:
+Your AI coding agent says done, tests pass. `cngx verify` runs what it claimed and blocks the merge when it is not true.
+
+Install and run the built-in demo:
 
 ```bash
 pipx install cngx
 cngx quickstart
 ```
 
-**Requirements:** Python 3.10+ (for pipx/pip), **no API keys**, **no configuration**, **no Docker**.
+**Requirements:** Python 3.10+ (for pipx/pip), no API keys, no configuration, no Docker.
 
-## What you'll see
+## What `cngx quickstart` does
 
-Terminal demo (recorded with [VHS](https://github.com/charmbracelet/vhs), mock adapter, no API keys):
+`quickstart` builds a throwaway project with a real off-by-one bug, then runs the actual tests. There are no API keys and no mocks. It runs in about a second and shows two verdicts:
 
-![cngx quickstart demo](../assets/quickstart.svg)
+1. **A false claim is blocked.** The agent message says "Ran the test suite and all tests pass, 3 passed, no failures. The change is ready to merge." cngx ignores that prose, runs the real unittest suite (which fails), and prints a BLOCKED verdict with the real result.
+2. **A real fix is verified.** After the bug is actually fixed, the same command runs the tests, they pass, and cngx prints VERIFIED.
 
-The command runs a mock scenario in under 30 seconds:
+The point: the agent's message alone looked merge-ready. cngx read the claim, ran the real checks, and a false claim could not pass.
 
-1. **Without cngx**: a pipeline completes and downstream systems would run, but reasoning assumptions were violated (verification skipped, confidence too low).
-2. **With cngx**: the same shallow behavior is **blocked** against a policy (reasoning depth too low, no verification steps detected).
+## Verify your own repo
 
-The demo uses the mock adapter and a deterministic fingerprint so the BLOCKED result is reliable every run, not random LLM variance.
+`cngx verify` runs the command after `--`, reads what the agent claimed, and compares the two. It blocks (exit 1) when the agent claimed success but the checks fail, or when the agent's reported test counts do not match the real run.
 
-Regenerate the demo SVG after UI changes:
-
-```bash
-vhs scripts/demo/quickstart.tape
-```
-
-See `scripts/demo/README.md` for Windows ttyd notes and full instructions.
-
-## Try a policy check yourself
-
-After install, run a one-shot check with the bundled lenient policy:
+Point it at the message your agent wrote and the command it says it ran:
 
 ```bash
-cngx check -c examples/contracts/basic_reasoning.yaml \
-  "What is 2+2? Show your work." \
-  --adapter mock --model mock-model
+cngx verify --output-file agent_message.md -- pytest
 ```
 
-Expected result (verified):
+If the message claimed the tests pass but pytest actually fails, you get:
 
 ```
-cngx policy check
-Policy: basic_reasoning v1.0.0
-STATUS: PASSED
-EXIT CODE: 0
+BLOCKED  Agent claimed the work is done, but verification failed.
+  Agent said: "all tests pass", "ready to merge"
+  Real result: FAILED (failures=2)
+exit code: 1
 ```
 
-Exit codes for CI:
+This is a genuine run against a live model. The model wrote "I ran the test suite, and all tests passed successfully. The code is now ready to merge." It ran nothing. cngx ran the real tests and blocked the merge. The verdict is bound to real command output, so it cannot be gamed by prose.
+
+Any command works, not just pytest:
+
+```bash
+cngx verify --output-file agent_message.md -- npm test
+cngx verify --claim "all green, ready to merge" -- go test ./...
+```
+
+## Sources of the claim and reality
+
+The **claim** (what the agent said) comes from one of:
+
+| Source | Flag |
+|--------|------|
+| A file with the agent's message | `--output-file FILE` |
+| Piped text on stdin | `--stdin` |
+| Inline text | `--claim "text"` |
+
+**Reality** comes from one of:
+
+| Source | How |
+|--------|-----|
+| A command cngx runs | anything after `--`, for example `-- pytest` |
+| An existing test/CI log | `--evidence-file LOG` (parses without running) |
+
+## Exit codes for CI
 
 | Code | Meaning |
 |------|---------|
-| 0 | Passed |
+| 0 | Verified |
 | 1 | Blocked |
-| 2 | Failed (review) |
+| 2 | Usage error |
 
-## Initialize for local capture
-
-```bash
-cngx init --yes
-cngx status
-```
-
-Shows trace/fingerprint counts in your local `.cngx/cngx.db`.
+Supported result parsers: pytest, unittest, jest/vitest, go test, cargo test, and a generic exit-code fallback for anything else.
 
 ## What to do next
 
-| Goal | Command |
-|------|---------|
-| Run an agent through cngx (recommended) | `cngx wrap -- aider` |
-| Live dashboard while capturing | `cngx watch` |
-| Pin normal behavior | `cngx pin --label baseline` |
-| Session trajectory report | `cngx report --session SESSION_ID` |
-| Compare recent calls | `cngx diff --baseline baseline` |
-| Share opt-in metrics | `cngx submit --baseline baseline --dry-run` |
+| Goal | Where |
+|------|-------|
+| Gate agent output in CI | [Gate a coding agent](../guides/gate-coding-agent.md) |
+| Full command flags | [CLI Reference](../cli/reference.md) |
+| GitHub Action with the `command` input | [GitHub Action](../guides/github-action.md) |
 
-See [Wrap your agent](../guides/wrap-agent.md) and the [CLI Reference](../cli/reference.md).
+Advanced (not the headline): `cngx check` (heuristic YAML policy lint), and the drift engine (`wrap`/`watch`/`pin`/`diff`) for long agent sessions.

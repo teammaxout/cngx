@@ -1,5 +1,8 @@
 # The Public Drift Log
 
+!!! note "Advanced, experimental"
+    The community tracker is an advanced, experimental feature tied to the drift engine, not the headline. It currently has little to no community data. Treat it as an early, mostly empty signal board, not a dataset you can draw conclusions from.
+
 The **cngx Drift Tracker** is a static site showing behavioral fingerprint trends over time, built from opt-in community submissions.
 
 - **Source:** `tracker/` in the repository
@@ -22,7 +25,7 @@ Per-model timeline charts of:
 
 Tabs are real provider model ids from opt-in submits (for example `gpt-4o-mini`). Harness names like `cngx-e2e-test` are rejected and never shown. Duplicate fingerprint shapes (same response under two baselines) are rejected so charts do not draw vertical spikes.
 
-Sample data ships with `"sample": true` so the pipeline works with zero API spend. Community records are real opt-in submissions. Early charts can look sparse until more days of submits land. The public index is rate-limited but not cryptographically attested: treat it as a signal board, not a scientific dataset.
+Sample data ships with `"sample": true` so the pipeline works with zero API spend. Real community records are opt-in submissions, and today there are few if any, so charts are largely empty until submits land. The public index is rate-limited but not cryptographically attested: treat it as a signal board, not a scientific dataset.
 
 ## How to contribute data
 

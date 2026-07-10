@@ -1,5 +1,8 @@
 # Session-level trajectory tracking
 
+!!! note "Advanced, experimental"
+    Session trajectory tracking is an advanced, experimental feature layered on the local proxy (`cngx wrap` / `cngx watch`). It is not the headline. For the core use case, blocking a merge when an agent's success claim is false, see [`cngx verify`](../getting-started/quickstart.md).
+
 Long-running agent sessions can degrade in ways that **single-response fingerprinting cannot see**. Each turn may look normal while the session as a whole quietly loses varied verification behavior, sometimes called hollow verbosity: repetitive output with a flat, unverified pattern.
 
 cngx tracks multi-turn sessions so you can spot this trajectory-level pattern, separate from per-turn structural drift alerts.

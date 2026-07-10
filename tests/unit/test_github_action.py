@@ -15,11 +15,18 @@ def test_action_yml_exists_and_has_required_inputs():
     data = yaml.safe_load(ACTION_YML.read_text(encoding="utf-8"))
     assert data["runs"]["using"] == "composite"
     inputs = data["inputs"]
-    assert "policy" in inputs and inputs["policy"]["required"] is True
+    # verify flow (primary)
+    assert "command" in inputs
+    assert "output-file" in inputs
+    assert "evidence-file" in inputs
+    # legacy check flow (retained, no longer required)
+    assert "policy" in inputs
     assert "prompt" in inputs
     assert "prompt-file" in inputs
-    assert "output-file" in inputs
     assert data["inputs"]["install-mode"]["default"] == "pypi"
+    # a verify step must exist in the composite run
+    step_names = " ".join(str(s.get("name", "")) for s in data["runs"]["steps"])
+    assert "verify" in step_names.lower()
 
 
 def test_github_action_local_smoke():

@@ -1,27 +1,44 @@
-name: cngx Policy Check
-description: Run cngx check against a YAML behavior policy in CI
+name: cngx verify
+description: Run the checks an AI agent claimed it ran, and block the merge on a false claim
 branding:
   icon: check-circle
   color: green
 
 inputs:
-  policy:
-    description: Path to the behavior policy YAML file (relative to repository root)
-    required: true
-  prompt:
-    description: Prompt or task text for live capture. Optional context for offline gate.
-    required: false
-    default: ""
-  prompt-file:
-    description: Path to a file with task prompt context (live capture or offline gate)
+  command:
+    description: >-
+      Verification command to run (for example "pytest -q"). When set, cngx runs
+      it and compares the real result to the agent's claim. This is the main path.
     required: false
     default: ""
   output-file:
-    description: Path to agent output file for offline gating (no LLM call, no API keys)
+    description: Path to the agent's message; cngx reads the verification claim from it
     required: false
     default: ""
   evidence-file:
-    description: Path to CI/test log for offline cross-check (must contain e.g. N passed)
+    description: Path to an existing test/CI log to gate offline instead of running a command
+    required: false
+    default: ""
+  require-claim:
+    description: Also block when checks pass but the agent made no verification claim
+    required: false
+    default: "false"
+  timeout:
+    description: Seconds before the verification command is killed
+    required: false
+    default: "600"
+  policy:
+    description: >-
+      (Legacy) YAML behavior policy for the heuristic `cngx check` text lint.
+      Prefer `command` with real execution. Ignored when `command` is set.
+    required: false
+    default: ""
+  prompt:
+    description: (Legacy check) prompt or task text for live capture
+    required: false
+    default: ""
+  prompt-file:
+    description: (Legacy check) file with task prompt context
     required: false
     default: ""
   python-version:
@@ -29,7 +46,7 @@ inputs:
     required: false
     default: "3.11"
   cngx-version:
-    description: Pin a cngx PyPI release (for example 0.1.7). Leave empty for latest.
+    description: Pin a cngx PyPI release (for example 0.2.0). Leave empty for latest.
     required: false
     default: ""
   install-mode:
@@ -37,25 +54,21 @@ inputs:
     required: false
     default: pypi
   model:
-    description: Model name label stored on the trace
+    description: (Legacy check) model name label stored on the trace
     required: false
     default: mock-model
   adapter:
-    description: Adapter (mock, openai, gemini, claude). Online capture only.
+    description: (Legacy check) adapter (mock, openai, gemini, claude)
     required: false
     default: mock
   task-id:
-    description: Task ID for the capture
+    description: (Legacy check) task ID for the capture
     required: false
     default: policy_check
   json-output:
     description: Emit JSON results to stdout
     required: false
     default: "false"
-  init:
-    description: Run cngx init --yes before check
-    required: false
-    default: "true"
 
 runs:
   using: composite
@@ -79,69 +92,77 @@ runs:
         fi
         cngx version
 
-    - name: Initialize cngx
-      if: inputs.init == 'true'
-      shell: bash
-      run: cngx init --yes
-
-    - name: Run cngx check
+    - name: Run cngx verify
+      if: inputs.command != '' || inputs.evidence-file != ''
       shell: bash
       run: |
         set -euo pipefail
-        POLICY="${{ inputs.policy }}"
-        if [ ! -f "$POLICY" ]; then
-          echo "Policy file not found: $POLICY" >&2
-          exit 2
-        fi
+        ARGS=(verify --timeout "${{ inputs.timeout }}")
 
-        HAS_OUTPUT=false
-        HAS_PROMPT=false
         if [ -n "${{ inputs.output-file }}" ]; then
-          HAS_OUTPUT=true
-        fi
-        if [ -n "${{ inputs.prompt }}" ] || [ -n "${{ inputs.prompt-file }}" ]; then
-          HAS_PROMPT=true
-        fi
-
-        if [ "$HAS_OUTPUT" != true ] && [ "$HAS_PROMPT" != true ]; then
-          echo "Either output-file (offline gate) or prompt/prompt-file (live check) is required" >&2
-          exit 2
-        fi
-
-        ARGS=(check -c "$POLICY" --model "${{ inputs.model }}" --task "${{ inputs.task-id }}")
-
-        if [ -n "${{ inputs.prompt-file }}" ]; then
-          if [ ! -f "${{ inputs.prompt-file }}" ]; then
-            echo "prompt-file not found: ${{ inputs.prompt-file }}" >&2
-            exit 2
-          fi
-          ARGS+=(--prompt-file "${{ inputs.prompt-file }}")
-        elif [ -n "${{ inputs.prompt }}" ]; then
-          ARGS+=(--prompt "${{ inputs.prompt }}")
-        fi
-
-        if [ "$HAS_OUTPUT" = true ]; then
           if [ ! -f "${{ inputs.output-file }}" ]; then
             echo "output-file not found: ${{ inputs.output-file }}" >&2
             exit 2
           fi
           ARGS+=(--output-file "${{ inputs.output-file }}")
-          if [ -n "${{ inputs.evidence-file }}" ]; then
-            if [ ! -f "${{ inputs.evidence-file }}" ]; then
-              echo "evidence-file not found: ${{ inputs.evidence-file }}" >&2
-              exit 2
-            fi
-            ARGS+=(--evidence-file "${{ inputs.evidence-file }}")
-          fi
-        else
-          ARGS+=(--adapter "${{ inputs.adapter }}")
-          if [ -n "${{ inputs.prompt }}" ]; then
-            ARGS+=("${{ inputs.prompt }}")
-          fi
         fi
-
+        if [ "${{ inputs.require-claim }}" = "true" ]; then
+          ARGS+=(--require-claim)
+        fi
         if [ "${{ inputs.json-output }}" = "true" ]; then
           ARGS+=(--json)
         fi
 
+        if [ -n "${{ inputs.command }}" ]; then
+          # shellcheck disable=SC2206
+          CMD=(${{ inputs.command }})
+          cngx "${ARGS[@]}" -- "${CMD[@]}"
+        else
+          if [ ! -f "${{ inputs.evidence-file }}" ]; then
+            echo "evidence-file not found: ${{ inputs.evidence-file }}" >&2
+            exit 2
+          fi
+          cngx "${ARGS[@]}" --evidence-file "${{ inputs.evidence-file }}"
+        fi
+
+    - name: Run cngx check (legacy policy lint)
+      if: inputs.command == '' && inputs.evidence-file == ''
+      shell: bash
+      run: |
+        set -euo pipefail
+        POLICY="${{ inputs.policy }}"
+        if [ -z "$POLICY" ]; then
+          echo "Provide 'command' (recommended) or 'evidence-file', or a legacy 'policy'." >&2
+          exit 2
+        fi
+        if [ ! -f "$POLICY" ]; then
+          echo "Policy file not found: $POLICY" >&2
+          exit 2
+        fi
+        cngx init --yes
+
+        HAS_OUTPUT=false
+        HAS_PROMPT=false
+        [ -n "${{ inputs.output-file }}" ] && HAS_OUTPUT=true
+        { [ -n "${{ inputs.prompt }}" ] || [ -n "${{ inputs.prompt-file }}" ]; } && HAS_PROMPT=true
+        if [ "$HAS_OUTPUT" != true ] && [ "$HAS_PROMPT" != true ]; then
+          echo "Legacy check needs output-file or prompt/prompt-file" >&2
+          exit 2
+        fi
+
+        ARGS=(check -c "$POLICY" --model "${{ inputs.model }}" --task "${{ inputs.task-id }}")
+        if [ -n "${{ inputs.prompt-file }}" ]; then
+          ARGS+=(--prompt-file "${{ inputs.prompt-file }}")
+        elif [ -n "${{ inputs.prompt }}" ]; then
+          ARGS+=(--prompt "${{ inputs.prompt }}")
+        fi
+        if [ "$HAS_OUTPUT" = true ]; then
+          ARGS+=(--output-file "${{ inputs.output-file }}")
+        else
+          ARGS+=(--adapter "${{ inputs.adapter }}")
+          [ -n "${{ inputs.prompt }}" ] && ARGS+=("${{ inputs.prompt }}")
+        fi
+        if [ "${{ inputs.json-output }}" = "true" ]; then
+          ARGS+=(--json)
+        fi
         cngx "${ARGS[@]}"

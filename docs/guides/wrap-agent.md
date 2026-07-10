@@ -1,6 +1,9 @@
 # Wrap your agent
 
-Instrument an existing agent CLI through the local proxy with zero code changes. Wrap fingerprints traffic and enables session drift alerts. It does **not** run YAML policy gates; use `cngx check --output-file` (or the GitHub Action) to block merges.
+!!! note "Advanced, experimental"
+    `cngx wrap` is part of the advanced drift engine, not the headline. To block a merge when an AI agent's success claim is false, use [`cngx verify`](../getting-started/quickstart.md).
+
+Instrument an existing agent CLI through the local proxy with zero code changes. Wrap fingerprints traffic and enables session drift alerts. It does **not** block merges by itself; use `cngx verify` (or the GitHub Action) to gate on real command results.
 
 ## Basic usage
 

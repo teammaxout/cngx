@@ -58,15 +58,15 @@ class TestOfflineCodingAgentGate:
         assert result.exit_code == 1
         assert "BLOCKED" in result.stdout or "BLOCKED" in result.stderr
 
-    def test_quickstart_path_matches_offline_check(self, scenario):
-        """Quickstart shallow output must block the same way as cngx check offline."""
-        from cngx.cli.quickstart_cmd import QUICKSTART_SHALLOW_OUTPUT
+    def test_quickstart_runs_real_tests_and_gates(self, tmp_path):
+        """Quickstart must block the false claim by running real tests, then pass a real fix."""
+        from cngx.cli.quickstart_cmd import _MODULE_BUGGY, _MODULE_FIXED, _TESTS, _run
 
-        trace = build_trace_from_text(
-            prompt=scenario.problem,
-            output=QUICKSTART_SHALLOW_OUTPUT,
-            task_id="coding_agent_fix",
-        )
-        fp = FingerprintExtractor().extract(trace)
-        result = DeploymentGate().check(fp, scenario.contract, trace)
-        assert result.blocked
+        (tmp_path / "cart.py").write_text(_MODULE_BUGGY, encoding="utf-8")
+        (tmp_path / "test_cart.py").write_text(_TESTS, encoding="utf-8")
+        verdict, _ = _run(tmp_path)
+        assert verdict.blocked
+
+        (tmp_path / "cart.py").write_text(_MODULE_FIXED, encoding="utf-8")
+        verdict_fixed, _ = _run(tmp_path)
+        assert verdict_fixed.verified

@@ -1,5 +1,15 @@
-# Example: gate agent output files in CI with no API keys.
+# Example: block a false agent claim in CI, no API keys.
 # Dogfoods the root composite action on pull requests.
+#
+# On a real repo you would run the tests directly:
+#
+#   - uses: aadi-joshi/cngx@v0.2.0
+#     with:
+#       output-file: agent_message.md
+#       command: pytest -q
+#
+# Here we use evidence-file (a real test log from a prior step) so the demo is
+# deterministic and needs no project test environment.
 
 name: Example Agent Gate
 
@@ -15,41 +25,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Stage unverified agent output
-        run: cp tests/fixtures/agent_outputs/unverified_patch.txt /tmp/agent_output.txt
+      - name: Write a failing test log
+        run: |
+          cat > /tmp/pytest_fail.log <<'EOF'
+          ============================= test session starts ==============================
+          collected 12 items
+          tests/test_users.py .........FF.                                          [100%]
+          =========================== 10 passed, 2 failed in 0.5s ========================
+          EOF
 
-      - name: cngx check unverified patch (expect blocked)
+      - name: Verify unverified patch against the real log (expect blocked)
         uses: ./
         with:
           install-mode: editable
-          policy: examples/contracts/coding_agent_verification.yaml
-          prompt: "Fix the pagination bug and run tests before merge"
-          output-file: /tmp/agent_output.txt
+          output-file: tests/fixtures/agent_outputs/unverified_patch.txt
+          evidence-file: /tmp/pytest_fail.log
         continue-on-error: true
         id: gate_unverified
 
-      - name: Assert unverified output was blocked
+      - name: Assert the false claim was blocked
         run: |
           if [ "${{ steps.gate_unverified.outcome }}" != "failure" ]; then
-            echo "Expected exit 1 (blocked) for unverified agent output"
+            echo "Expected exit 1 (blocked): agent said ready to merge, tests failed"
             exit 1
           fi
-          echo "Unverified patch correctly blocked"
+          echo "False claim correctly blocked"
 
-      - name: Stage pytest evidence log
+      - name: Write a passing test log
         run: |
-          cat > /tmp/pytest.log <<'EOF'
+          cat > /tmp/pytest_pass.log <<'EOF'
           ============================= test session starts ==============================
           collected 12 items
           tests/test_users.py ............                                         [100%]
           ============================= 12 passed in 0.41s ===============================
           EOF
 
-      - name: cngx check verified fix (expect pass)
+      - name: Verify a real fix against the real log (expect pass)
         uses: ./
         with:
           install-mode: editable
-          policy: examples/contracts/coding_agent_verification.yaml
-          prompt-file: tests/fixtures/action_prompt.txt
           output-file: tests/fixtures/agent_outputs/verified_fix.txt
-          evidence-file: /tmp/pytest.log
+          evidence-file: /tmp/pytest_pass.log

@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cngx"
-version = "0.1.10"
-description = "CI gate for coding agents that sound merge-ready but never showed the tests."
+version = "0.2.0"
+description = "Run the checks your AI coding agent claimed it ran, and block the merge on a false claim."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"

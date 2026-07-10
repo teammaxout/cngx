@@ -21,9 +21,13 @@ console = Console()
 app = typer.Typer(
     name="cngx",
     help=(
-        "Policy-check coding agents on message one, then track session drift.\n\n"
-        "Start with: cngx check --output-file agent.txt -c policy.yaml\n"
-        "Long runs: cngx wrap / watch / pin / diff"
+        "Catch AI coding agents that say the tests pass when they do not.\n\n"
+        "cngx runs the checks your agent claimed it ran, compares the real result\n"
+        "to what the agent said, and blocks the merge when they disagree.\n\n"
+        "Start here:\n"
+        "  cngx quickstart                          30s demo, no setup\n"
+        "  cngx verify --output-file agent.md -- pytest\n\n"
+        "Advanced: check (heuristic policy lint), wrap / watch / pin / diff (session drift)"
     ),
     add_completion=False,
     pretty_exceptions_enable=True,
@@ -103,9 +107,8 @@ def init(
             f"[green]OK[/] Ready at {cngx_path.resolve()}\n\n"
             "[bold]Try next:[/]\n"
             "  [cyan]cngx quickstart[/]  30-second demo, no API keys\n"
-            "  [cyan]cngx wrap -- aider[/]  zero-code agent instrumentation\n"
-            "  [cyan]cngx watch[/]       live dashboard\n"
-            "  [cyan]cngx pin --label baseline[/]  pin recent behavior",
+            "  [cyan]cngx verify --output-file agent.md -- pytest[/]  gate an agent claim\n"
+            "  [dim]advanced:[/] [cyan]cngx wrap -- aider[/] / [cyan]cngx watch[/]  session drift",
             title="[bold]cngx[/]",
         )
     )
@@ -113,10 +116,60 @@ def init(
 
 @app.command()
 def quickstart() -> None:
-    """Zero-key demo: block an unverified agent patch (message-one policy check)."""
+    """Zero-key demo: catch an agent that claims the tests pass when they fail."""
     from cngx.cli.quickstart_cmd import run_quickstart
 
     run_quickstart()
+
+
+@app.command(
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)
+def verify(
+    ctx: typer.Context,
+    claim: Optional[str] = typer.Option(
+        None, "--claim", "-C", help="Agent claim text (what it said it did)"
+    ),
+    output_file: Optional[Path] = typer.Option(
+        None, "--output-file", "-o", help="File with the agent message to read the claim from"
+    ),
+    stdin: bool = typer.Option(False, "--stdin", help="Read the agent claim from stdin"),
+    evidence_file: Optional[Path] = typer.Option(
+        None, "--evidence-file", "-e", help="Use an existing test log instead of running a command"
+    ),
+    require_claim: bool = typer.Option(
+        False, "--require-claim", help="Also block if checks pass but the agent made no claim"
+    ),
+    timeout: float = typer.Option(600.0, "--timeout", help="Seconds before the command is killed"),
+    json_output: bool = typer.Option(False, "--json", "-j", help="Machine-readable output"),
+) -> None:
+    """Run what the agent claimed it ran, then compare claim to reality.
+
+    Put the real verification command after a double dash:
+
+      cngx verify --output-file agent.md -- pytest
+
+    cngx runs the command, reads what the agent said, and BLOCKS (exit 1) when
+    the agent claimed success but the checks actually fail, or when its reported
+    counts do not match the real run. The verdict is bound to real command
+    output, so it cannot be satisfied by prose alone.
+
+    Exit codes: 0 verified, 1 blocked, 2 usage error.
+    """
+    from cngx.cli.verify_cmd import run_verify
+
+    raise typer.Exit(
+        run_verify(
+            command=list(ctx.args),
+            claim=claim,
+            output_file=output_file,
+            stdin=stdin,
+            evidence_file=evidence_file,
+            require_claim=require_claim,
+            timeout=timeout,
+            json_output=json_output,
+        )
+    )
 
 
 @app.command(

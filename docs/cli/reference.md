@@ -1,6 +1,8 @@
 # CLI Reference
 
-All commands verified against `cngx v0.1.7`. Run `cngx --help` for the live list.
+All commands verified against `cngx v0.2.0`. Run `cngx --help` for the live list.
+
+The flagship command is [`verify`](#verify). The proxy and policy commands below (`wrap`, `watch`, `pin`, `diff`, `check`) are advanced.
 
 ## Global
 
@@ -9,9 +11,59 @@ cngx --help
 cngx version
 ```
 
+## verify
+
+Run the checks the agent claimed it ran, compare the claim to reality, and block the merge when they disagree. This is the flagship command.
+
+```bash
+cngx verify --output-file agent_message.md -- pytest
+```
+
+cngx runs the command after `--`, reads what the agent claimed, and BLOCKS (exit 1) when the agent claimed success but the checks fail, or when the agent's reported test counts do not match the real run. The verdict is bound to real command output, so it cannot be satisfied by prose alone.
+
+**Claim source** (what the agent said), pick one:
+
+```bash
+cngx verify --output-file agent_message.md -- pytest   # read claim from a file
+cngx verify --stdin -- pytest                          # read claim from stdin
+cngx verify --claim "all tests pass, ready to merge" -- pytest
+```
+
+**Reality source** (what actually happened), pick one:
+
+```bash
+cngx verify --output-file agent_message.md -- pytest -q   # run a command
+cngx verify --output-file agent_message.md --evidence-file pytest.log   # parse an existing log
+```
+
+Use either a command after `--` or `--evidence-file`, not both.
+
+Example BLOCKED output:
+
+```
+BLOCKED  Agent claimed the work is done, but verification failed.
+  Agent said: "all tests pass", "ready to merge"
+  Real result: FAILED (failures=2)
+exit code: 1
+```
+
+| Flag | Description |
+|------|-------------|
+| `-o`, `--output-file` | File with the agent's message; the claim is read from it |
+| `--stdin` | Read the agent claim from stdin |
+| `-C`, `--claim` | Inline agent claim text |
+| `-e`, `--evidence-file` | Parse an existing test/CI log instead of running a command |
+| `--require-claim` | Also block if checks pass but the agent made no verification claim |
+| `--timeout` | Seconds before the command is killed (default `600`) |
+| `-j`, `--json` | Machine-readable verdict |
+
+Exit codes: **0** verified, **1** blocked, **2** usage error.
+
+Supported result parsers: pytest, unittest, jest/vitest, go test, cargo test, and a generic exit-code fallback for any other command. The overall pass/fail comes from the process exit code; parsed counts refine the receipt and catch a claim that contradicts the real numbers.
+
 ## init
 
-Initialize `.cngx/` and local DuckDB storage.
+Initialize `.cngx/` and local DuckDB storage. Only needed for the advanced proxy and policy commands, not for `verify`.
 
 ```bash
 cngx init --yes
@@ -20,13 +72,13 @@ cngx init --force    # overwrite existing
 
 ## quickstart
 
-Zero-key demo of silent reasoning regression caught by policy check.
+Zero-key demo of `cngx verify`. Builds a throwaway project with a real bug, runs the actual tests, shows a false claim blocked and a real fix verified.
 
 ```bash
 cngx quickstart
 ```
 
-Completes in ~0.5 to 1s. Shows BLOCKED policy result.
+Completes in about a second. No API keys.
 
 ## wrap
 
@@ -73,6 +125,9 @@ cngx diff --baseline baseline --limit 5
 Without a pinned baseline, exits with a message to run `pin` first.
 
 ## check
+
+!!! note "Advanced, heuristic"
+    `check` scores the *text* of agent output against a YAML policy using regex heuristics. It does not run anything, so a fabricated "all tests passed" claim can satisfy a text-only policy. For real proof that the checks pass, use [`cngx verify`](#verify), which is bound to actual command output. Keep `check` for behavioral linting, not proof of execution.
 
 Check a prompt or existing agent output against a YAML policy. CI-friendly exit codes.
 

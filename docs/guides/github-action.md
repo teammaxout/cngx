@@ -1,149 +1,110 @@
 # GitHub Action
 
-cngx ships a reusable composite action at the repository root. Add a policy check to your CI with one step.
+cngx ships a reusable composite action at the repository root. It runs the real verification command your AI agent claimed it ran and fails the job when the claim is false.
 
-## Minimal example (offline gate, no API keys)
+## Minimal example (verify, recommended)
 
-Use this when CI already has agent output on disk. Fingerprints the file and enforces your policy with zero provider calls.
-
-Copy a policy into your repo (or vendor `examples/contracts/coding_agent_verification.yaml` from cngx):
+Set `command` to the real verification command and `output-file` to the agent's message. cngx runs the command, reads the claim, and blocks on a false claim. No API keys.
 
 ```yaml
-name: CI
+name: Agent gate
 
 on:
   pull_request:
-  push:
-    branches: [main]
 
 jobs:
-  gate-agent-output:
+  gate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # Your agent writes merge-ready text to a file, for example:
-      # - run: ./my-agent.sh --task "fix pagination" > agent_output.txt
+      # Your agent writes its merge-ready message to a file, for example:
+      # - run: ./run-agent.sh > agent_message.md
 
-      - name: cngx policy gate
-        uses: aadi-joshi/cngx@v0.1.7
+      - uses: aadi-joshi/cngx@v0.2.0
         with:
-          policy: examples/contracts/coding_agent_verification.yaml
-          prompt: "Fix the pagination bug and run tests before merge"
-          output-file: agent_output.txt
-          evidence-file: pytest-results.log
+          output-file: agent_message.md
+          command: pytest -q
 ```
 
-**Exit codes:** `0` pass, `1` blocked, `2` failed (policy load or capture error). The job fails on blocked or failed checks.
+**Exit codes:** `0` verified, `1` blocked, `2` usage error. The job fails on a blocked verdict.
 
-## Inputs
+The `command` value can be any test or build command:
+
+```yaml
+      - uses: aadi-joshi/cngx@v0.2.0
+        with:
+          output-file: agent_message.md
+          command: npm test
+```
+
+## Inputs (verify)
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `policy` | yes | | Path to behavior policy YAML |
-| `prompt` | live: one of `prompt` / `prompt-file`; offline: optional context | | Inline task text |
-| `prompt-file` | live: one of `prompt` / `prompt-file`; offline: optional context | | Path to task context file |
-| `output-file` | offline mode | | Path to agent output file (no LLM call, no API keys) |
-| `evidence-file` | no | | Path to a real pytest/CI log for offline cross-check (must contain e.g. `N passed`) |
+| `command` | one of `command` / `evidence-file` | | Verification command to run, for example `pytest -q`. This is the main path |
+| `output-file` | no | | Path to the agent's message; cngx reads the verification claim from it |
+| `evidence-file` | one of `command` / `evidence-file` | | Path to an existing test/CI log to gate offline instead of running a command |
+| `require-claim` | no | `false` | Also block when checks pass but the agent made no verification claim |
+| `timeout` | no | `600` | Seconds before the verification command is killed |
 | `python-version` | no | `3.11` | Python version for `setup-python` |
-| `cngx-version` | no | latest PyPI | Pin a release (for example `0.1.7`) |
+| `cngx-version` | no | latest PyPI | Pin a release (for example `0.2.0`) |
 | `install-mode` | no | `pypi` | `pypi` or `editable` (`pip install -e .`, for dogfooding) |
-| `model` | no | `mock-model` | Model name label stored on the trace |
-| `adapter` | no | `mock` | `mock`, `openai`, `gemini`, or `claude` (online capture only) |
-| `task-id` | no | `policy_check` | Task ID stored with the capture |
-| `json-output` | no | `false` | Print JSON results |
-| `init` | no | `true` | Run `cngx init --yes` first |
+| `json-output` | no | `false` | Emit JSON results to stdout |
 
-Provide **either** `output-file` (offline gate) **or** `prompt` / `prompt-file` (live capture).
+Provide either `command` (run it) or `evidence-file` (parse an existing log), not both.
 
-## Gate agent output (more examples)
+## Offline: gate an existing CI log
+
+When the tests already ran in a prior step, point the action at the log instead of running the command again:
 
 ```yaml
-name: Agent CI
+      - name: Run tests
+        run: pytest -q | tee pytest.log
 
-on:
-  pull_request:
-
-jobs:
-  gate-agent-output:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      # Your agent or script writes merge-ready text to a file:
-      # - run: ./my-agent.sh --task "fix pagination" > agent_output.txt
-
-      - name: cngx policy gate
-        uses: aadi-joshi/cngx@v0.1.7
+      - uses: aadi-joshi/cngx@v0.2.0
         with:
-          policy: examples/contracts/coding_agent_verification.yaml
-          prompt: "Fix the pagination bug and run tests before merge"
-          output-file: agent_output.txt
-
-      - name: cngx policy gate (prompt from file)
-        uses: aadi-joshi/cngx@v0.1.7
-        with:
-          policy: examples/contracts/coding_agent_verification.yaml
-          prompt-file: tasks/fix_pagination.txt
-          output-file: agent_output.txt
-          json-output: "true"
-```
-
-When `output-file` is set, the action skips adapter capture. No `OPENAI_API_KEY` or other provider secrets are required.
-
-### Evidence file (stronger offline gate)
-
-Text-only policies can be fooled by fabricated "12 passed" claims in agent narrative. Pass `evidence-file` with a real tool log so cngx also requires a concrete result line:
-
-```yaml
-      - name: cngx policy gate with evidence
-        uses: aadi-joshi/cngx@v0.1.7
-        with:
-          policy: examples/contracts/coding_agent_verification.yaml
-          prompt: "Fix the pagination bug and run tests before merge"
-          output-file: agent_output.txt
+          output-file: agent_message.md
           evidence-file: pytest.log
 ```
 
-See `.github/workflows/example-agent-gate.yml` in this repo for a full dogfooding workflow that blocks `unverified_patch.txt` and passes `verified_fix.txt`.
+cngx parses the log for a real result line and blocks when the agent's claim contradicts it.
 
-## Long prompts (live capture)
+## Require a verification claim
 
-```yaml
-      - uses: aadi-joshi/cngx@v0.1.7
-        with:
-          policy: examples/contracts/basic_reasoning.yaml
-          prompt-file: tests/fixtures/reasoning_prompt.txt
-```
-
-## Live model adapters
-
-Set API keys on the job (never commit them). The action forwards them to `cngx check` only in live capture mode:
+Block even when the checks pass, if the agent never actually claimed to verify:
 
 ```yaml
-  reasoning-policy:
-    runs-on: ubuntu-latest
-    env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: aadi-joshi/cngx@v0.1.7
+      - uses: aadi-joshi/cngx@v0.2.0
         with:
-          policy: examples/contracts/basic_reasoning.yaml
-          prompt: "Summarize this week's incident report with verification steps."
-          adapter: openai
-          model: gpt-4o-mini
+          output-file: agent_message.md
+          command: pytest -q
+          require-claim: "true"
 ```
 
 ## JSON output for downstream steps
 
 ```yaml
-      - uses: aadi-joshi/cngx@v0.1.7
+      - uses: aadi-joshi/cngx@v0.2.0
         id: cngx
         with:
-          policy: examples/contracts/basic_reasoning.yaml
-          prompt: "Explain how TCP handshakes work."
+          output-file: agent_message.md
+          command: pytest -q
           json-output: "true"
+```
+
+## Advanced: legacy `check` (heuristic policy lint)
+
+When neither `command` nor `evidence-file` is set, the action falls back to the legacy `cngx check`, which scores the *text* of agent output against a YAML policy using regex heuristics. It does not run anything, so a fabricated "all tests passed" claim can satisfy it. Prefer the `command` path above for real proof.
+
+The legacy inputs (`policy`, `prompt`, `prompt-file`, `model`, `adapter`, `task-id`) still exist for this path:
+
+```yaml
+      - uses: aadi-joshi/cngx@v0.2.0
+        with:
+          policy: examples/contracts/coding_agent_verification.yaml
+          prompt: "Fix the pagination bug and run tests before merge"
+          output-file: agent_message.md
 ```
 
 ## Dogfooding in this repository
@@ -155,22 +116,11 @@ The cngx repo tests the action from the checkout root:
       - uses: ./
         with:
           install-mode: editable
-          policy: examples/contracts/basic_reasoning.yaml
-          prompt: "What is 15 * 7? Show your reasoning step by step."
+          command: pytest -q tests/unit/test_verify_verdict.py
 ```
-
-## Local smoke test
-
-Approximate the composite steps on your machine:
-
-```bash
-python scripts/test_github_action_local.py
-```
-
-This runs editable install, live capture checks, offline `output-file` block and pass paths, matching `action.yml` logic.
 
 ## Related
 
-- [Writing a Policy](../concepts/policies.md)
-- [CLI `check`](../cli/reference.md#check)
+- [Gate a coding agent](gate-coding-agent.md)
+- [CLI `verify`](../cli/reference.md#verify)
 - [Badge snippet](badge.md)
