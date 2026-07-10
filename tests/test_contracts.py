@@ -395,7 +395,7 @@ class TestCanonicalContracts:
 
     def test_math_correctness_loads(self, tmp_path):
         """Math correctness contract loads correctly."""
-        contract_path = Path("contracts/math_correctness.yaml")
+        contract_path = Path("examples/contracts/legacy/math_correctness.yaml")
         if contract_path.exists():
             contract = BehaviorContract.from_yaml(contract_path)
             assert contract.name == "math_correctness"
@@ -406,7 +406,7 @@ class TestCanonicalContracts:
 
     def test_research_reasoning_loads(self, tmp_path):
         """Research reasoning contract loads correctly."""
-        contract_path = Path("contracts/research_reasoning.yaml")
+        contract_path = Path("examples/contracts/legacy/research_reasoning.yaml")
         if contract_path.exists():
             contract = BehaviorContract.from_yaml(contract_path)
             assert contract.name == "research_reasoning"
@@ -414,7 +414,7 @@ class TestCanonicalContracts:
 
     def test_code_correctness_loads(self, tmp_path):
         """Code correctness contract loads correctly."""
-        contract_path = Path("contracts/code_correctness.yaml")
+        contract_path = Path("examples/contracts/legacy/code_correctness.yaml")
         if contract_path.exists():
             contract = BehaviorContract.from_yaml(contract_path)
             assert contract.name == "code_correctness"

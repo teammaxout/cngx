@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-cngx SYSTEM-LEVEL DEMO: behavioral contract enforcement in Action
+cngx SYSTEM-LEVEL DEMO: policy check and verification gate
 
-This script demonstrates cngx's core value proposition:
+This script demonstrates cngx's core value:
 
   WITHOUT cngx: AI reasoning can silently degrade while systems
                continue operating, leading to invisible failures.
 
-  WITH cngx: Behavioral contracts catch reasoning regressions
-            BEFORE they reach production, blocking unsafe deployments.
+  WITH cngx: A policy check catches missing verification and shallow
+            reasoning BEFORE merge/deploy, blocking unsafe releases.
 
 RUN THIS DEMO:
   python examples/system_demo.py
@@ -17,7 +17,7 @@ WHAT THIS SHOWS:
   1. A realistic multi-stage AI decision pipeline
   2. How downstream systems TRUST AI reasoning
   3. What happens when reasoning degrades (silent failure)
-  4. How cngx transforms silent failures into explicit blocks
+  4. How cngx turns silent failures into explicit blocks
 
 DURATION: ~60 seconds with API calls
 
@@ -55,19 +55,20 @@ def print_title():
     console.print()
     console.print(
         Panel(
-            "[bold red]cngx: AI BEHAVIOR FIREWALL[/]\n\n"
+            "[bold]cngx: verification gate[/]\n\n"
             "[bold]SYSTEM-LEVEL DEMONSTRATION[/]\n\n"
-            "This demo shows why cngx is critical infrastructure for AI systems.\n\n"
+            "Local CLI that fingerprints agent/LLM output and gates\n"
+            "merges when required verification is missing.\n\n"
             "[yellow]The Problem:[/]\n"
             "  AI systems trust LLM reasoning for downstream decisions.\n"
             "  When reasoning quality degrades, failures are SILENT.\n"
             "  Traditional monitoring cannot detect reasoning regression.\n\n"
             "[green]The Solution:[/]\n"
-            "  cngx enforces behavioral contracts that catch reasoning changes.\n"
+            "  cngx runs a policy check that catches missing verification.\n"
             "  BLOCK severity violations prevent deployment (exit code 1).\n"
             "  Silent failures become explicit, preventable failures.",
-            title="[bold magenta]🛡️ DEMO[/]",
-            border_style="red",
+            title="[bold]DEMO[/]",
+            border_style="cyan",
             width=80,
         )
     )
@@ -86,7 +87,7 @@ def print_scenario_intro():
     console.print("  3. [cyan]Quality Check[/] → Verify reasoning quality")
     console.print("  4. [cyan]Student Feedback[/] → Downstream system acts on reasoning")
     console.print()
-    console.print("[bold]The Contract (what we require):[/]")
+    console.print("[bold]The Policy (what we require):[/]")
     console.print("  • Reasoning depth ≥ 4 (multi-step explanation)")
     console.print("  • Verification required (must check work)")
     console.print("  • Clear result stated (no ambiguity)")
@@ -172,7 +173,7 @@ def run_without_cngx_demo():
     console.print("[dim]This simulates what happens in production today:[/]")
     console.print("[dim]  • AI produces output[/]")
     console.print("[dim]  • Downstream systems trust it[/]")
-    console.print("[dim]  • No behavioral validation[/]")
+    console.print("[dim]  • No policy check[/]")
     console.print()
 
     # Capture with a brief prompt (simulating a model that gives short answers)
@@ -213,7 +214,7 @@ def run_without_cngx_demo():
 
         console.print()
         if assumptions_violated:
-            console.print("[bold red]⚠️  SILENT FAILURE DETECTED[/]")
+            console.print("[bold red]SILENT FAILURE DETECTED[/]")
             console.print()
             console.print("Reasoning assumptions violated:")
             for v in assumptions_violated:
@@ -235,7 +236,7 @@ def run_without_cngx_demo():
             )
             return True, trace, fp  # Silent failure occurred
         else:
-            console.print("[green]✓ Reasoning quality acceptable[/]")
+            console.print("[green]Reasoning quality acceptable[/]")
             return False, trace, fp
 
     except Exception as e:
@@ -251,14 +252,14 @@ def run_with_cngx_demo():
     console.print()
     console.print("[bold green]━━━ MODE: WITH cngx ━━━[/]")
     console.print()
-    console.print("[dim]Same scenario, but now with cngx Behavior Firewall:[/]")
+    console.print("[dim]Same scenario, but now with a cngx policy check:[/]")
     console.print("[dim]  • AI produces output[/]")
-    console.print("[dim]  • cngx validates against contract[/]")
+    console.print("[dim]  • cngx validates against policy[/]")
     console.print("[dim]  • BLOCK violations prevent deployment[/]")
     console.print()
 
     contract = create_contract()
-    console.print(f"[bold]Contract:[/] {contract.name} v{contract.version}")
+    console.print(f"[bold]Policy:[/] {contract.name} v{contract.version}")
     console.print()
 
     tracer = CngxTracer(adapter="gemini", model="gemini-2.5-flash")
@@ -309,12 +310,12 @@ def run_with_cngx_demo():
                             for v in result.violations[:4]
                         ]
                     ),
-                    title="[red bold]🛑 cngx GATE RESULT[/]",
+                    title="[red bold]cngx GATE RESULT[/]",
                     border_style="red",
                 )
             )
             console.print()
-            console.print("[bold green]✓ SILENT FAILURE PREVENTED[/]")
+            console.print("[bold green]SILENT FAILURE PREVENTED[/]")
             console.print("  • Downstream systems protected")
             console.print("  • Students not exposed to shallow reasoning")
             console.print("  • CI/CD pipeline would fail (exit code 1)")
@@ -325,7 +326,7 @@ def run_with_cngx_demo():
                     f"[green bold]DEPLOYMENT ALLOWED[/]\n\n"
                     f"Contract: {result.contract_name}\n"
                     f"Exit Code: {result.exit_code}",
-                    title="[green]✓ cngx GATE RESULT[/]",
+                    title="[green]cngx GATE RESULT[/]",
                     border_style="green",
                 )
             )
@@ -350,12 +351,12 @@ def print_conclusion(without_cngx_failure: bool, cngx_blocked: bool):
     table.add_row(
         "WITHOUT cngx",
         "Silent Failure" if without_cngx_failure else "OK",
-        "[red]⚠️ Degraded reasoning shipped[/]" if without_cngx_failure else "[green]✓[/]",
+        "[red]Degraded reasoning shipped[/]" if without_cngx_failure else "[green]OK[/]",
     )
     table.add_row(
         "WITH cngx",
         "BLOCKED" if cngx_blocked else "Allowed",
-        "[green]✓ Regression caught[/]" if cngx_blocked else "[yellow]Allowed[/]",
+        "[green]Regression caught[/]" if cngx_blocked else "[yellow]Allowed[/]",
     )
 
     console.print(table)
@@ -364,27 +365,27 @@ def print_conclusion(without_cngx_failure: bool, cngx_blocked: bool):
     if without_cngx_failure and cngx_blocked:
         console.print(
             Panel(
-                "[bold green]cngx TRANSFORMED A SILENT FAILURE INTO AN EXPLICIT BLOCK[/]\n\n"
+                "[bold green]cngx TURNED A SILENT FAILURE INTO AN EXPLICIT BLOCK[/]\n\n"
                 "Without cngx:\n"
                 "  • Reasoning quality degraded silently\n"
                 "  • Downstream systems continued operating\n"
                 "  • Users received substandard output\n"
                 "  • Problem only discovered later (if ever)\n\n"
                 "With cngx:\n"
-                "  • Contract violation detected immediately\n"
+                "  • Policy violation detected immediately\n"
                 "  • Deployment blocked (exit code 1)\n"
                 "  • CI/CD pipeline fails before production\n"
                 "  • Engineers notified, problem fixed\n\n"
-                "[bold]This is the behavioral contract enforcement.[/]",
-                title="[bold magenta]KEY INSIGHT[/]",
+                "[bold]This is a verification gate.[/]",
+                title="[bold]KEY INSIGHT[/]",
                 border_style="green",
             )
         )
 
     console.print()
     console.print("[bold]Next Steps:[/]")
-    console.print("  • [cyan]cngx gate check[/] - Test your prompts against contracts")
-    console.print("  • [cyan]cngx gate ci[/] - Integrate into CI/CD pipelines")
+    console.print("  • [cyan]cngx check[/] - Test prompts or agent output against policies")
+    console.print("  • [cyan]cngx check --json[/] - CI-friendly JSON + exit codes")
     console.print("  • [cyan]cngx demo explain[/] - Deeper explanation of concepts")
     console.print()
 

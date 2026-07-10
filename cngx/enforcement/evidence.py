@@ -34,6 +34,27 @@ class EvidenceCheck:
         return 0 if self.ok else 1
 
 
+def first_result_snippet(text: str) -> str | None:
+    """Return the first log line that matches a concrete result pattern.
+
+    Used to inject real CI evidence into offline agent output before the
+    policy check, so a solid writeup that omitted pasting pytest output can
+    still satisfy required result patterns when CI supplies a real log.
+    """
+    for line in (text or "").splitlines():
+        stripped = line.strip()
+        if stripped and any(p.search(stripped) for p in _RESULT_PATTERNS):
+            return stripped
+    body = (text or "").strip()
+    if not body:
+        return None
+    for pattern in _RESULT_PATTERNS:
+        match = pattern.search(body)
+        if match:
+            return match.group(0)
+    return None
+
+
 def check_evidence_text(text: str) -> EvidenceCheck:
     """Require concrete test-result evidence in a log or artifact file.
 

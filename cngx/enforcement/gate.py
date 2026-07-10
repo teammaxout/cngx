@@ -1,11 +1,12 @@
-"""Production enforcement gate.
+"""CI/CD verification gate (local OSS).
 
-Multi-layer validation gate that produces hard exit codes
-for CI/CD pipeline integration. Not just eval, enforcement.
+Multi-layer policy checks that produce hard exit codes for
+pipeline integration. Useful for gating merges when drift,
+accuracy, or stability thresholds are breached.
 
 Exit codes:
   0 = PASS, all checks passed
-  1 = FAIL, contract violations detected
+  1 = FAIL, policy violations detected
   2 = ERROR, infrastructure/configuration error
   3 = WARN, soft violations (advisory mode)
 """

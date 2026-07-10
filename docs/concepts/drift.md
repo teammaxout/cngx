@@ -61,7 +61,8 @@ Used by `cngx diff`, `cngx drift detect`, and population comparisons in `DriftDe
 **Continuous / graded scores:** Paired permutation (sign-flip) test via `holdout.paired_permutation_test`, following the generalization recommended in [Amazon Science LLM-Accuracy-Stats](https://github.com/amazon-science/LLM-Accuracy-Stats).
 
 ```bash
-cngx regression --suite benchmarks/math.yaml --policy policies/strict.yaml \
+cngx regression --suite examples/regression_suite_real.yaml \
+  --policy examples/contracts/strict_verification.yaml \
   --baseline-outcomes baseline_scores.json
 ```
 

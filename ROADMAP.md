@@ -1,85 +1,54 @@
 # cngx Roadmap
 
-cngx v0.1.0 is a **deliberately narrow** open-source tool. The scope is intentional: local fingerprinting, baseline-relative drift, and policy checks, not a full AI platform.
+cngx **v0.1.5** is a deliberately narrow open-source tool: local fingerprinting,
+offline agent gating, baseline-relative drift, and policy checks. Not a full AI platform.
 
-This document explains what ships today, what is deferred for later consideration, and what that means for the future.
-
----
-
-## v0.1.0, What you get today
+## What ships today (v0.1.5)
 
 | Capability | Status |
 |------------|--------|
-| Local ASGI proxy (`cngx watch`) | Shipped |
+| Offline `cngx check --output-file` | Shipped |
+| `--evidence-file` cross-check for pytest/CI logs | Shipped |
+| Coding-agent verification policies | Shipped |
+| Local ASGI proxy (`cngx watch` / `cngx wrap`) | Shipped |
 | Behavioral fingerprinting (regex/heuristic metrics) | Shipped |
 | DuckDB local storage (`.cngx/`) | Shipped |
 | Baseline pinning (`cngx pin`) | Shipped |
 | Multi-metric statistical drift alerts | Shipped |
-| YAML policies + `cngx check` (CI exit codes) | Shipped |
+| Paired regression suites (`cngx regression`) | Shipped |
 | Live terminal dashboard (Rich TUI) | Shipped |
 | Opt-in public drift tracker (`cngx submit`) | Shipped |
 | Zero-key `cngx quickstart` | Shipped |
+| GitHub Action (offline + live) | Shipped |
 
-**Design principles baked in:**
+**Design principles:**
 
-- Local-first, no account, no telemetry
+- Local-first, no account, no telemetry by default
 - Alerts relative to *your* pinned baseline, not universal thresholds
 - Shorter answers alone do not trigger drift
-- Privacy, submit shares numeric metrics only, with preview-and-confirm
+- Text policies are heuristics; use `--evidence-file` and CI exit codes for stronger gates
+- Privacy: submit shares numeric metrics only, with preview-and-confirm
 
----
+## Near-term priorities
 
-## Deferred capabilities, not in this repository
+1. Artifact-aware CI examples (pytest log + agent output in one Action)
+2. Broader provider shapes through the proxy (Gemini wrap honesty or real route)
+3. Docs site deploy (MkDocs) separate from the tracker homepage
+4. More policy templates from real agent workflows
 
-The following were explored during early development and are **intentionally deferred** pending real community demand. They are **not** part of v0.1.0 and **not** included in this repository.
+## Deferred (not in this repository)
 
-| Capability | What it would add |
-|------------|-------------------|
-| **Correctness validators** | Math/code/logic answer validation beyond behavioral metrics |
-| **Cross-model consensus** | Agreement checks across multiple models |
-| **Benchmarking harness** | Structured benchmark runs and comparisons |
-| **Robustness / perturbation** | Prompt perturbation and stability testing |
-| **Explainability engine** | Natural-language violation explanations |
-| **Remediation engine** | Automated fix suggestions for failed checks |
-| **Audit logging** | Tamper-evident trails for policy decisions |
-| **Cross-model validator** | Cross-model agreement checks |
-
-Associated tests for these areas are likewise out of scope for v0.1.0.
-
-### When might these return?
-
-When there is clear, sustained demand from OSS users, e.g. issues asking for math correctness validation, cross-model consensus, or benchmark harnesses, with contributors willing to maintain them outside the core local tool.
-
-The core tool must stay simple. Deferred features will not be merged back without a strong case that they serve the local-first use case.
-
----
-
-## Hosted platform, out of scope for v0.1.0
-
-A previous product direction included a multi-service hosted stack (dashboard, team features, cloud SDK). That work is **not** part of this repository or v0.1.0. The local OSS tool is complete without it. A future hosted offering could revisit shared baselines or team dashboards based on demand, but nothing here commits to that.
-
----
-
-## Near-term OSS priorities (informal)
-
-Not committed dates, current direction:
-
-1. **Docs and polish**, mkdocs, README, demo assets
-2. **Tracker community growth**, opt-in submissions, cited model-update annotations
-3. **Adapter coverage**, broader provider API shapes through the proxy
-4. **Policy examples**, domain-specific templates contributed by users
-
----
+| Capability | Notes |
+|------------|-------|
+| Correctness validators (math/code answer checking) | Explored earlier; not in OSS tree |
+| Cross-model consensus | Deferred |
+| Robustness / perturbation harness | Deferred |
+| Explainability / remediation engines | Deferred |
+| Hosted multi-tenant SaaS | Out of scope for core |
 
 ## What we will not do in core v0.x without strong justification
 
 - Require a cloud account to use the tool
-- Phone home telemetry by default
+- Phone-home telemetry by default
 - Present fingerprints as universal intelligence scores
 - Re-introduce hosted billing, RBAC, or multi-tenant SaaS into the default install
-
----
-
-## How to influence the roadmap
-
-Open a [feature request](https://github.com/aadi-joshi/cngx/issues/new?template=feature_request.md) with your use case. Restoring deferred capabilities will be driven by evidence of demand, not by restoring everything from archive.

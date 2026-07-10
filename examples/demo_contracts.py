@@ -86,7 +86,7 @@ def run_demo():
     console.print(f"[bold]Prompt:[/] {prompt}\n")
 
     # Save contract to file
-    contract.to_yaml("demo_contract.yaml")
+    contract.to_yaml("examples/contracts/demo_contract.yaml")
 
     # Test with real model
     console.print("[dim]Capturing trace with gemini-2.5-flash...[/]")

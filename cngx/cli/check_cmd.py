@@ -129,7 +129,7 @@ def run_offline_check(
     """Fingerprint and gate existing agent output. No LLM calls."""
     from cngx.capture.tracer import CngxTracer
     from cngx.contracts import DeploymentGate
-    from cngx.enforcement.evidence import check_evidence_text
+    from cngx.enforcement.evidence import check_evidence_text, first_result_snippet
 
     try:
         behavior_policy = _load_policy(policy)
@@ -138,6 +138,7 @@ def run_offline_check(
         return 2
 
     evidence_payload = None
+    gated_output = output
     if evidence_file is not None:
         if not evidence_file.is_file():
             console.print(f"[red]evidence-file not found: {evidence_file}[/]")
@@ -167,9 +168,16 @@ def run_offline_check(
                 for reason in evidence_check.reasons:
                     console.print(f"  - {reason}")
             return 1
+        # Inject a concrete result line from the CI log into the text under
+        # policy review so agents that reasoned well but omitted pasting
+        # pytest output can still satisfy required_patterns.
+        snippet = first_result_snippet(evidence_text)
+        if snippet:
+            evidence_payload["snippet"] = snippet
+            gated_output = f"{output.rstrip()}\n\n[cngx evidence]\n{snippet}\n"
 
     trace, fp = CngxTracer.ingest_output(
-        output,
+        gated_output,
         prompt=prompt,
         task_id=task_id,
         model=model,
@@ -315,7 +323,10 @@ def check(
     evidence_file: Optional[Path] = typer.Option(
         None,
         "--evidence-file",
-        help="CI/test log to cross-check (must contain e.g. 'N passed'); offline only",
+        help=(
+            "CI/test log to cross-check (must contain e.g. 'N passed'); "
+            "offline only. Valid logs inject a result snippet into the gated text"
+        ),
     ),
     model: str = typer.Option("mock-model", "--model", "-m"),
     adapter: str = typer.Option("mock", "--adapter", "-a", help="mock, openai, gemini, claude"),

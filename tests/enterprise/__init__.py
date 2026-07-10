@@ -1,2 +1,1 @@
-# Enterprise-grade test suite for cngx
-# Tests real LLM integration, scale, security, and deployment readiness
+# Integration-style tests: real LLM adapters, scale, security, deployment readiness

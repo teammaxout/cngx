@@ -18,7 +18,27 @@ datas = []
 binaries = []
 hiddenimports = collect_submodules("cngx")
 
-for pkg in ("duckdb", "frouros", "scipy", "numpy", "typer", "rich", "httpx", "starlette", "uvicorn"):
+for pkg in (
+    "duckdb",
+    "frouros",
+    "scipy",
+    "numpy",
+    "typer",
+    "rich",
+    "httpx",
+    "starlette",
+    "uvicorn",
+    # Required at CLI import time; missing these caused Windows ModuleNotFoundError
+    "pydantic",
+    "pydantic_settings",
+    "yaml",
+    "fastapi",
+    "jinja2",
+    "holdout",
+    "openai",
+    "dotenv",
+    "anthropic",
+):
     try:
         pkg_datas, pkg_binaries, pkg_hidden = collect_all(pkg)
         datas += pkg_datas

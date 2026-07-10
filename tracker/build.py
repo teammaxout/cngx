@@ -222,7 +222,7 @@ cngx submit --baseline my-baseline</pre>
 
     <section class="section" aria-labelledby="privacy-heading">
       <h2 id="privacy-heading">privacy</h2>
-      <p class="privacy-note">Submissions are opt-in. The API accepts only allowlisted numeric fields after you preview and confirm. Lambda does not log your IP or request headers; stored objects contain payload fields only. The aggregated index at <code>community/index.json</code> is world-readable so this page can load it without a rebuild.</p>
+      <p class="privacy-note">Submissions are opt-in. The API accepts only allowlisted numeric fields after you preview and confirm. Application code stores payload fields only (no prompts or outputs). Edge/API access logs may still exist at the infrastructure layer. The aggregated index at <code>community/index.json</code> is world-readable so this page can load it without a rebuild.</p>
     </section>
 
     <footer class="site-footer">
@@ -347,7 +347,7 @@ def render_docs() -> str:
 
       <h2 id="submit">submit and privacy</h2>
       <p>By default nothing leaves your machine. <code>cngx submit</code> is opt-in, shows the exact JSON before sending, and posts only after you confirm.</p>
-      <p>Submitted payloads contain only: model name, timestamp, numeric metrics, drift score, and your baseline label. No prompts, outputs, trace IDs, or task names. The submit API does not log your IP or request headers; stored objects contain payload fields only.</p>
+      <p>Submitted payloads contain only: model name, timestamp, numeric metrics, drift score, and your baseline label. No prompts, outputs, trace IDs, or task names. Application storage keeps payload fields only; CloudFront/API Gateway access logs are separate infrastructure concerns.</p>
       <p>No GitHub account or pull request is required.</p>
       {blocks["submit"]}
 

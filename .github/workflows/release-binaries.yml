@@ -57,6 +57,20 @@ jobs:
           "$BIN" --help
           "$BIN" version
           "$BIN" quickstart
+          # Offline policy check: expect exit 1 (policy fail), not import crash.
+          set +e
+          "$BIN" check \
+            -c examples/contracts/coding_agent_verification.yaml \
+            --output-file tests/fixtures/agent_outputs/unverified_patch.txt \
+            -p "task"
+          CHECK_RC=$?
+          set -e
+          if [ "$CHECK_RC" -eq 1 ]; then
+            echo "check smoke: policy fail (exit 1) as expected"
+          else
+            echo "check smoke: unexpected exit $CHECK_RC (want 1 for policy fail)"
+            exit 1
+          fi
 
       - name: Stage release asset
         shell: bash

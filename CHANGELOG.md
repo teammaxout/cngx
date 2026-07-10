@@ -5,6 +5,27 @@ All notable changes to cngx will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2026-07-10
+
+### Fixed
+- Standalone PyInstaller binaries now bundle pydantic and related imports (Windows builds were crashing on startup).
+- Release binary smoke test runs an offline `cngx check` and expects a policy fail, not an import crash.
+- GitHub Action generator emits a real offline `cngx check` workflow (no fake `benchmark` / `consensus` steps).
+- Docs no longer claim zero added proxy latency; fingerprinting is background after the stream.
+- Broken tracker demo media links removed from docs (assets were never committed).
+
+### Changed
+- Documentation project URL points at the GitHub `docs/` tree (Pages hosts the tracker, not MkDocs).
+- Legacy `cngx gate` defaults to the mock adapter (parity with `cngx check`); prefer `cngx check`.
+- Removed unwired `cngx enforce` CLI and unused Postgres storage backend.
+- Demo/example copy aligned with verification-gate positioning (dropped firewall branding).
+- `demo_contract.yaml` moved under `examples/contracts/`.
+
+### Added
+- Docs for `--evidence-file` in the CLI reference, GitHub Action guide, and coding-agent gate guide.
+- When `--evidence-file` passes, the first concrete result line is injected into the gated text so agents that reasoned well but omitted pasting pytest output can still satisfy required patterns.
+- `mkdocs build --strict` CI job.
+
 ## [0.1.4] - 2026-07-10
 
 ### Fixed

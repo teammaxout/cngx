@@ -11,7 +11,7 @@ from cngx import (
 def main():
     """Demonstrate basic cngx workflow."""
     print("=" * 60)
-    print("cngx, Behavioral Contract Enforcement Demo")
+    print("cngx: fingerprint, policy check, session drift")
     print("=" * 60)
 
     # 1. Create tracer with mock adapter (no actual LLM calls)

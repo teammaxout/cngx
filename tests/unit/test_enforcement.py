@@ -143,22 +143,26 @@ class TestGitHubActionGenerator:
         from cngx.enforcement import GitHubActionGenerator
 
         yaml = GitHubActionGenerator.generate()
-        assert "cngx Enforcement Gate" in yaml
+        assert "cngx agent gate" in yaml
         assert "actions/checkout@v4" in yaml
-        assert "pip install cngx" in yaml
+        assert "aadi-joshi/cngx@" in yaml
+        assert "output-file:" in yaml
 
     def test_custom_config(self):
         from cngx.enforcement import GitHubActionGenerator
 
         yaml = GitHubActionGenerator.generate(
-            model="gpt-4o",
-            provider="openai",
-            api_key_secret="OPENAI_API_KEY",
             python_version="3.12",
+            policy_file="policies/strict.yaml",
+            output_file="out.txt",
+            evidence_file="pytest.log",
+            cngx_version="0.1.5",
         )
-        assert "gpt-4o" in yaml
-        assert "OPENAI_API_KEY" in yaml
         assert "3.12" in yaml
+        assert "policies/strict.yaml" in yaml
+        assert "out.txt" in yaml
+        assert "pytest.log" in yaml
+        assert "0.1.5" in yaml
 
     def test_save(self, tmp_path):
         from cngx.enforcement import GitHubActionGenerator
@@ -172,10 +176,13 @@ class TestGitHubActionGenerator:
         from cngx.enforcement import GitHubActionGenerator
 
         yaml = GitHubActionGenerator.generate(run_benchmark=False)
-        assert "Benchmark" not in yaml
+        assert "cngx benchmark" not in yaml
+        assert "Consensus" not in yaml
 
-    def test_enable_consensus(self):
+    def test_enable_consensus_ignored(self):
         from cngx.enforcement import GitHubActionGenerator
 
+        # Deferred SaaS commands must not appear even if requested.
         yaml = GitHubActionGenerator.generate(run_consensus=True)
-        assert "Consensus" in yaml
+        assert "cngx consensus" not in yaml
+        assert "output-file:" in yaml

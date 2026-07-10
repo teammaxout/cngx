@@ -147,3 +147,21 @@ jobs:
 
       - name: Build tracker
         run: python tracker/build.py
+
+  docs:
+    name: Docs (mkdocs --strict)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install docs extras
+        run: pip install -e ".[docs]"
+
+      - name: Build docs
+        run: mkdocs build --strict

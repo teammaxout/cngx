@@ -18,7 +18,7 @@ jobs:
       - name: Stage unverified agent output
         run: cp tests/fixtures/agent_outputs/unverified_patch.txt /tmp/agent_output.txt
 
-      - name: cngx gate unverified patch (expect blocked)
+      - name: cngx check unverified patch (expect blocked)
         uses: ./
         with:
           install-mode: editable
@@ -36,7 +36,7 @@ jobs:
           fi
           echo "Unverified patch correctly blocked"
 
-      - name: cngx gate verified fix (expect pass)
+      - name: cngx check verified fix (expect pass)
         uses: ./
         with:
           install-mode: editable

@@ -73,8 +73,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="cngx, Behavioral Contract Enforcement",
-    description="Git for model behavior, not prompts",
+    title="cngx",
+    description="Local CLI companion: fingerprint agent output, policy check, session drift",
     version=__version__,
     lifespan=lifespan,
 )
@@ -401,7 +401,7 @@ async def ui():
 <!DOCTYPE html>
 <html>
 <head>
-    <title>cngx, Behavioral Contract Enforcement</title>
+    <title>cngx</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -446,7 +446,7 @@ async def ui():
 </head>
 <body>
     <div class="container">
-        <h1>cngx, Behavioral Contract Enforcement</h1>
+        <h1>cngx</h1>
 
         <div class="card">
             <h2>Statistics</h2>

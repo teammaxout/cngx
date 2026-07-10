@@ -1,6 +1,7 @@
-"""cngx Gate, behavioral contract enforcement CLI.
+"""cngx Gate CLI (legacy).
 
-Primary commands for deployment blocking and CI/CD integration.
+Prefer `cngx check` for new integrations. These commands remain for
+policy checks and CI experiments that still call `cngx gate`.
 """
 
 import json
@@ -16,7 +17,7 @@ from rich.table import Table
 
 app = typer.Typer(
     name="gate",
-    help="behavioral contract enforcement - Block deployment on contract violations",
+    help="Legacy policy check CLI. Prefer `cngx check`.",
 )
 console = Console(stderr=True)
 
@@ -50,15 +51,17 @@ def _output_result(result, json_output: bool, quiet: bool):
 def gate_check(
     prompt: str = typer.Argument(..., help="Prompt to test"),
     contract: Path = typer.Option(..., "--contract", "-c", help="Contract file"),
-    model: str = typer.Option("gemini-flash-latest", "--model", "-m"),
+    model: str = typer.Option("mock-model", "--model", "-m"),
     adapter: str = typer.Option(
-        "gemini", "--adapter", "-a", help="Adapter (openai, gemini, claude, mock)"
+        "mock", "--adapter", "-a", help="Adapter (mock, openai, gemini, claude)"
     ),
     task_id: str = typer.Option("gate_check", "--task", "-t"),
     json_output: bool = typer.Option(False, "--json", "-j", help="JSON output for CI"),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Minimal output"),
 ) -> None:
-    """Check if a prompt passes a behavior contract.
+    """Check if a prompt passes a behavior policy (legacy).
+
+    Prefer: `cngx check -c policy.yaml "prompt" --adapter mock`
 
     Exit codes:
       0 = PASSED (deployment allowed)
@@ -66,7 +69,7 @@ def gate_check(
       2 = FAILED (violations but not blocking)
 
     Example:
-        cngx gate check "Solve x^2 = 16" -c math.yaml
+        cngx gate check "Solve x^2 = 16" -c examples/contracts/math_reasoning.yaml
     """
     from cngx.capture.tracer import CngxTracer
     from cngx.contracts import DeploymentGate
@@ -109,13 +112,15 @@ def gate_check(
 def gate_ci(
     prompt: str = typer.Argument(..., help="Prompt to test"),
     contract: Path = typer.Option(..., "--contract", "-c", help="Contract file"),
-    model: str = typer.Option("gemini-flash-latest", "--model", "-m"),
+    model: str = typer.Option("mock-model", "--model", "-m"),
     adapter: str = typer.Option(
-        "gemini", "--adapter", "-a", help="Adapter (openai, gemini, claude, mock)"
+        "mock", "--adapter", "-a", help="Adapter (mock, openai, gemini, claude)"
     ),
     task_id: str = typer.Option("ci_check", "--task", "-t"),
 ) -> None:
-    """CI/CD mode - JSON output, non-interactive, exit codes.
+    """CI/CD mode - JSON output, non-interactive, exit codes (legacy).
+
+    Prefer: `cngx check -c policy.yaml "prompt" --json`
 
     Designed for GitHub Actions, GitLab CI, etc.
 
@@ -125,7 +130,7 @@ def gate_ci(
       2 = FAILED (soft failure)
 
     Example (GitHub Actions):
-        - run: cngx gate ci "$PROMPT" -c contracts/math.yaml
+        - run: cngx check "$PROMPT" -c examples/contracts/math_reasoning.yaml --json
     """
     # Suppress warnings in CI
     import warnings
@@ -171,9 +176,10 @@ def gate_validate(
     contract: Path = typer.Option(..., "--contract", "-c", help="Contract file"),
     json_output: bool = typer.Option(False, "--json", "-j"),
 ) -> None:
-    """Validate an existing trace against a contract.
+    """Validate an existing trace against a policy.
 
     Use when you already have a captured trace.
+    Prefer offline `cngx check --output-file` for new agent-output gates.
     """
     from cngx.contracts import DeploymentGate
     from cngx.storage.database import get_database
@@ -211,12 +217,12 @@ def gate_compare(
     prompt: str = typer.Option(..., "--prompt", "-p", help="Prompt to test"),
     contract: Path = typer.Option(..., "--contract", "-c", help="Contract file"),
     models: str = typer.Option(..., "--models", help="Comma-separated models"),
-    adapters: str = typer.Option("gemini", "--adapters", help="Comma-separated adapters"),
+    adapters: str = typer.Option("mock", "--adapters", help="Comma-separated adapters"),
 ) -> None:
     """Compare policy results across models.
 
-    Shows which models pass/fail the same contract.
-    Critical for detecting model upgrade regressions.
+    Shows which models pass/fail the same policy.
+    Useful for spotting model upgrade regressions.
     """
     import time
 
@@ -241,7 +247,7 @@ def gate_compare(
             f"[bold]Contract:[/] {behavior_contract.name} v{behavior_contract.version}\n"
             f"[bold]Prompt:[/] {prompt[:60]}...\n"
             f"[bold]Models:[/] {', '.join(model_list)}",
-            title="[bold]Cross-Model Gate Comparison[/]",
+            title="[bold]Cross-Model Policy Comparison[/]",
         )
     )
 
@@ -301,5 +307,5 @@ def gate_compare(
 
 @app.callback()
 def callback() -> None:
-    """behavioral contract enforcement - Block deployment on contract violations."""
+    """Legacy policy check CLI. Prefer `cngx check`."""
     pass

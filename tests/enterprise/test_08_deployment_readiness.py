@@ -164,16 +164,16 @@ class TestContractLoadingFromFile:
     """Contract YAML files load correctly."""
 
     def test_load_bundled_contracts(self):
-        """All bundled contract YAML files load successfully."""
+        """Legacy contract YAML files under examples/contracts/legacy load."""
         from tests.enterprise.conftest import repo_root
 
-        contracts_dir = repo_root() / "contracts"
-        assert contracts_dir.is_dir(), f"contracts directory missing: {contracts_dir}"
+        contracts_dir = repo_root() / "examples" / "contracts" / "legacy"
+        assert contracts_dir.is_dir(), f"legacy contracts missing: {contracts_dir}"
 
         from cngx.contracts.schema import BehaviorContract
 
         yaml_files = list(contracts_dir.glob("*.yaml"))
-        assert len(yaml_files) > 0, "Expected at least one contract file"
+        assert len(yaml_files) > 0, "Expected at least one legacy contract file"
 
         for yaml_file in yaml_files:
             contract = BehaviorContract.from_yaml(yaml_file)

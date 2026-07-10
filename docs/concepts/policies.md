@@ -114,7 +114,7 @@ GitHub Actions example: `.github/workflows/cngx-check.yml` in the repository.
 | `examples/contracts/basic_reasoning.yaml` | Lenient |
 | `examples/contracts/math_reasoning.yaml` | Requires verification |
 | `examples/contracts/strict_verification.yaml` | Stricter verification |
-| `contracts/math_correctness.yaml` | Production-style math policy |
+| `examples/contracts/legacy/math_correctness.yaml` | Older production-style math policy |
 
 ## Related
 

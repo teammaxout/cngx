@@ -169,7 +169,7 @@ def demo_drift():
 
 
 def demo_enforcement():
-    header("CI/CD Enforcement Gate", "Block deployments that violate contracts")
+    header("CI/CD Verification Gate", "Block merges that fail policy checks")
 
     from cngx.enforcement import EnforcementGate, EnforcementConfig
 
@@ -204,7 +204,7 @@ def demo_github_actions():
 
     step(10, "Generate GitHub Actions workflow")
     yaml_content = GitHubActionGenerator.generate(
-        contract_path="contracts/math_correctness.yaml",
+        contract_path="examples/contracts/math_reasoning.yaml",
         python_version="3.11",
         provider="gemini",
     )
@@ -227,10 +227,10 @@ def demo_github_actions():
 def main():
     console.print(
         Panel(
-            "[bold white]cngx, Behavioral Contract Enforcement[/]\n"
-            "[dim]Complete Product Demo • Zero API Keys Required[/]\n\n"
-            "[cyan]This demo exercises core product capabilities[/]\n"
-            "[cyan]using the built-in mock adapter (no network access).[/]",
+            "[bold white]cngx: local verification gate[/]\n"
+            "[dim]Complete demo • Zero API keys required[/]\n\n"
+            "[cyan]Fingerprints agent/LLM output, runs policy checks,[/]\n"
+            "[cyan]and detects drift using the mock adapter (no network).[/]",
             border_style="bold blue",
             padding=(1, 3),
         )
@@ -241,7 +241,7 @@ def main():
         ("Capture & Fingerprint", demo_capture),
         ("Behavior Contracts", None),
         ("Drift Detection", demo_drift),
-        ("Enforcement Gate", demo_enforcement),
+        ("Verification Gate", demo_enforcement),
         ("GitHub Action Generator", demo_github_actions),
     ]
 
@@ -264,12 +264,12 @@ def main():
             "  1. Traced an LLM call and extracted behavioral metrics\n"
             "  2. Validated behavior against a YAML contract\n"
             "  3. Detected behavioral drift between model versions\n"
-            "  4. Ran a CI/CD enforcement gate (PASS + BLOCK scenarios)\n"
+            "  4. Ran a CI/CD verification gate (PASS + BLOCK scenarios)\n"
             "  5. Auto-generated a GitHub Actions workflow\n\n"
             "[bold cyan]Next steps:[/]\n"
             "  • Set GOOGLE_API_KEY and re-run with --adapter gemini\n"
-            "  • Write your own contracts in contracts/\n"
-            "  • Add 'cngx gate ci' to your CI/CD pipeline\n",
+            "  • Write policies under examples/contracts/\n"
+            "  • Add 'cngx check' to your CI/CD pipeline\n",
             title="Demo Complete",
             border_style="bold green",
             padding=(1, 3),
