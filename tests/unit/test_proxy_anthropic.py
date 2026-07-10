@@ -47,18 +47,18 @@ def test_parse_anthropic_non_stream():
 
 def test_parse_anthropic_stream_sse():
     sse = (
-        'event: message_start\n'
+        "event: message_start\n"
         'data: {"type":"message_start","message":{"model":"claude-sonnet-4-20250514",'
         '"usage":{"input_tokens":5}}}\n\n'
-        'event: content_block_delta\n'
+        "event: content_block_delta\n"
         'data: {"type":"content_block_delta","delta":{"type":"text_delta",'
         '"text":"Step 1: plan. "}}\n\n'
-        'event: content_block_delta\n'
+        "event: content_block_delta\n"
         'data: {"type":"content_block_delta","delta":{"type":"text_delta",'
         '"text":"Tests passed."}}\n\n'
-        'event: message_delta\n'
+        "event: message_delta\n"
         'data: {"type":"message_delta","usage":{"output_tokens":4}}\n\n'
-        'event: message_stop\n'
+        "event: message_stop\n"
         'data: {"type":"message_stop"}\n\n'
     )
     parsed = analysis._parse_anthropic_response(sse.encode(), was_stream=True)

@@ -44,7 +44,15 @@ jobs:
           python -m pip install "pyinstaller>=6.0.0"
 
       - name: Build standalone executable
-        run: pyinstaller packaging/pyinstaller/cngx.spec --noconfirm
+        run: |
+          pyinstaller packaging/pyinstaller/cngx.spec --noconfirm \
+            --hidden-import=pydantic \
+            --hidden-import=pydantic_core \
+            --hidden-import=pydantic_core._pydantic_core \
+            --hidden-import=pydantic_settings \
+            --collect-all=pydantic \
+            --collect-all=pydantic_core \
+            --collect-all=pydantic_settings
 
       - name: Smoke test executable
         shell: bash

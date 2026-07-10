@@ -1,14 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
 """PyInstaller spec for a standalone cngx CLI binary.
 
-Bundled dependencies include scipy, frouros, and duckdb so the executable
-matches the full CLI/proxy workflow without a separate Python install.
+Bundled dependencies include scipy, frouros, duckdb, and pydantic so the
+executable matches the full CLI/proxy workflow without a separate Python install.
 """
 
-import sys
 from pathlib import Path
 
-from PyInstaller.utils.hooks import collect_all, collect_submodules
+from PyInstaller.utils.hooks import collect_all, collect_submodules, copy_metadata
 
 root = Path(SPECPATH).resolve().parents[1]
 
@@ -18,7 +17,15 @@ datas = []
 binaries = []
 hiddenimports = collect_submodules("cngx")
 
-for pkg in (
+# Required packages. Fail the build if a critical one cannot be collected.
+REQUIRED = (
+    "pydantic",
+    "pydantic_core",
+    "pydantic_settings",
+    "annotated_types",
+    "typing_extensions",
+)
+OPTIONAL = (
     "duckdb",
     "frouros",
     "scipy",
@@ -26,11 +33,14 @@ for pkg in (
     "typer",
     "rich",
     "httpx",
+    "anyio",
+    "httpcore",
+    "h11",
+    "idna",
+    "certifi",
+    "sniffio",
     "starlette",
     "uvicorn",
-    # Required at CLI import time; missing these caused Windows ModuleNotFoundError
-    "pydantic",
-    "pydantic_settings",
     "yaml",
     "fastapi",
     "jinja2",
@@ -38,12 +48,24 @@ for pkg in (
     "openai",
     "dotenv",
     "anthropic",
-):
+    "click",
+    "shellingham",
+)
+
+for pkg in REQUIRED + OPTIONAL:
     try:
         pkg_datas, pkg_binaries, pkg_hidden = collect_all(pkg)
         datas += pkg_datas
         binaries += pkg_binaries
         hiddenimports += pkg_hidden
+    except Exception as exc:
+        if pkg in REQUIRED:
+            raise RuntimeError(f"PyInstaller collect_all failed for required package {pkg}: {exc}") from exc
+
+# Metadata is needed for some importlib.metadata lookups at runtime.
+for meta_pkg in ("pydantic", "pydantic_core", "pydantic-settings", "cngx"):
+    try:
+        datas += copy_metadata(meta_pkg)
     except Exception:
         pass
 
@@ -52,11 +74,19 @@ hiddenimports += [
     "cngx.cli.wrap",
     "cngx.cli.watch",
     "cngx.cli.quickstart_cmd",
+    "cngx.cli.check_cmd",
     "cngx.proxy.app",
     "cngx.proxy.server",
+    "cngx.proxy.analysis",
     "cngx.drift.streaming",
     "cngx.drift.batch",
     "cngx.storage.database",
+    "cngx.core.config",
+    "cngx.core.models",
+    "pydantic",
+    "pydantic_core",
+    "pydantic_core._pydantic_core",
+    "pydantic_settings",
     "scipy.special.cython_special",
     "scipy.linalg.cython_blas",
     "scipy.linalg.cython_lapack",
@@ -71,7 +101,21 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=["matplotlib", "tkinter", "pytest", "IPython"],
+    excludes=[
+        "matplotlib",
+        "tkinter",
+        "pytest",
+        "IPython",
+        "torch",
+        "torchvision",
+        "torchaudio",
+        "transformers",
+        "sentence_transformers",
+        "pandas",
+        "tensorflow",
+        "sklearn",
+        "skimage",
+    ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,

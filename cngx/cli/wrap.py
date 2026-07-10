@@ -21,8 +21,7 @@ DEFAULT_PORT = 8642
 PROXY_START_TIMEOUT_S = 10.0
 
 GEMINI_NOT_PROXIED = (
-    "Warning: Gemini traffic is not proxied "
-    "(google-genai ignores base URL env vars)."
+    "Warning: Gemini traffic is not proxied " "(google-genai ignores base URL env vars)."
 )
 
 
