@@ -4,6 +4,8 @@ Your AI coding agent says done, tests pass. `cngx verify` runs what it claimed a
 
 Use this guide when an AI agent produces a merge-ready message ("fixed it, all tests pass, ready to merge") and you want CI to run the real checks and block the merge on a false claim. No API keys required.
 
+For tool-specific copy-paste commands, see [Coding agent verification recipes](coding-agent-recipes.md).
+
 ## Flow
 
 ```mermaid
@@ -100,6 +102,7 @@ For real proof that the checks pass, use `cngx verify`, which is bound to actual
 
 ## Related
 
+- [Coding agent verification recipes](coding-agent-recipes.md)
 - [CLI `verify`](../cli/reference.md#verify)
 - [GitHub Action](github-action.md)
 - [Writing a Policy](../concepts/policies.md) (for the advanced `check` path)

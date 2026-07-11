@@ -62,6 +62,7 @@ nav:
   - CLI Reference: cli/reference.md
   - Guides:
     - Gate a Coding Agent: guides/gate-coding-agent.md
+    - Coding Agent Recipes: guides/coding-agent-recipes.md
     - Wrap Your Agent: guides/wrap-agent.md
     - The Proxy and Your Privacy: guides/proxy-and-privacy.md
     - The Public Drift Log: guides/public-drift-log.md
