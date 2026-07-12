@@ -103,11 +103,11 @@ all = [
 cngx = "cngx.cli.main:app"
 
 [project.urls]
-Homepage = "https://github.com/aadi-joshi/cngx"
-Repository = "https://github.com/aadi-joshi/cngx"
-Documentation = "https://github.com/aadi-joshi/cngx/tree/main/docs"
-"Bug Tracker" = "https://github.com/aadi-joshi/cngx/issues"
-Changelog = "https://github.com/aadi-joshi/cngx/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/teammaxout/cngx"
+Repository = "https://github.com/teammaxout/cngx"
+Documentation = "https://github.com/teammaxout/cngx/tree/main/docs"
+"Bug Tracker" = "https://github.com/teammaxout/cngx/issues"
+Changelog = "https://github.com/teammaxout/cngx/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["cngx"]

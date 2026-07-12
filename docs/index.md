@@ -41,14 +41,14 @@ cngx quickstart
 
 Or with pip inside a project environment: `pip install cngx && cngx quickstart`
 
-Standalone binaries (no Python) are on [GitHub Releases](https://github.com/aadi-joshi/cngx/releases).
+Standalone binaries (no Python) are on [GitHub Releases](https://github.com/teammaxout/cngx/releases).
 
 `quickstart` runs in about a second with no API keys. It builds a throwaway project with a real bug, runs the actual tests, and shows a false "all tests pass" claim blocked, then a real fix verified.
 
 ## In CI
 
 ```yaml
-- uses: aadi-joshi/cngx@v0.2.0
+- uses: teammaxout/cngx@v0.2.0
   with:
     output-file: agent_message.md
     command: pytest -q
@@ -85,4 +85,4 @@ Nothing requires a cloud account. Data stays on your machine unless you explicit
 
 ## License
 
-MIT. See [LICENSE](https://github.com/aadi-joshi/cngx/blob/main/LICENSE) in the repository.
+MIT. See [LICENSE](https://github.com/teammaxout/cngx/blob/main/LICENSE) in the repository.

@@ -1,6 +1,6 @@
 # cngx
 
-[![CI](https://github.com/aadi-joshi/cngx/actions/workflows/ci.yml/badge.svg)](https://github.com/aadi-joshi/cngx/actions/workflows/ci.yml)
+[![CI](https://github.com/teammaxout/cngx/actions/workflows/ci.yml/badge.svg)](https://github.com/teammaxout/cngx/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/cngx)](https://pypi.org/project/cngx/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://pypi.org/project/cngx/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -85,7 +85,7 @@ cngx verify --claim "all tests pass" --evidence-file pytest.log
 In CI with the GitHub Action (blocks the merge on a false claim):
 
 ```yaml
-- uses: aadi-joshi/cngx@v0.2.0
+- uses: teammaxout/cngx@v0.2.0
   with:
     output-file: agent_message.md
     command: pytest -q
@@ -112,15 +112,15 @@ Exit codes: `0` verified, `1` blocked, `2` usage error.
 
 ## Local-first
 
-Runs entirely on your machine. Commands run in your shell as you. Nothing is uploaded. Optional trace history lives in `.cngx/` (DuckDB). See [proxy and privacy](https://github.com/aadi-joshi/cngx/blob/main/docs/guides/proxy-and-privacy.md).
+Runs entirely on your machine. Commands run in your shell as you. Nothing is uploaded. Optional trace history lives in `.cngx/` (DuckDB). See [proxy and privacy](https://github.com/teammaxout/cngx/blob/main/docs/guides/proxy-and-privacy.md).
 
 ## Docs
 
-- [Quickstart](https://github.com/aadi-joshi/cngx/blob/main/docs/getting-started/quickstart.md)
-- [Gate a coding agent in CI](https://github.com/aadi-joshi/cngx/blob/main/docs/guides/gate-coding-agent.md)
-- [CLI reference](https://github.com/aadi-joshi/cngx/blob/main/docs/cli/reference.md)
-- [Session drift (advanced)](https://github.com/aadi-joshi/cngx/blob/main/docs/concepts/drift.md)
-- [Contributing](https://github.com/aadi-joshi/cngx/blob/main/CONTRIBUTING.md)
+- [Quickstart](https://github.com/teammaxout/cngx/blob/main/docs/getting-started/quickstart.md)
+- [Gate a coding agent in CI](https://github.com/teammaxout/cngx/blob/main/docs/guides/gate-coding-agent.md)
+- [CLI reference](https://github.com/teammaxout/cngx/blob/main/docs/cli/reference.md)
+- [Session drift (advanced)](https://github.com/teammaxout/cngx/blob/main/docs/concepts/drift.md)
+- [Contributing](https://github.com/teammaxout/cngx/blob/main/CONTRIBUTING.md)
 
 Created by [Kavya Bhand](https://github.com/kavyabhand) and [Aadi Joshi](https://github.com/aadi-joshi).
 

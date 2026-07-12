@@ -3,7 +3,7 @@
 #
 # On a real repo you would run the tests directly:
 #
-#   - uses: aadi-joshi/cngx@v0.2.0
+#   - uses: teammaxout/cngx@v0.2.0
 #     with:
 #       output-file: agent_message.md
 #       command: pytest -q

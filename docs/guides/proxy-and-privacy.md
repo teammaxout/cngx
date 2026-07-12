@@ -72,5 +72,5 @@ The optional Dockerfile runs the proxy only, single container, no multi-service 
 
 ## Related
 
-- [SECURITY.md](https://github.com/aadi-joshi/cngx/blob/main/SECURITY.md) for vulnerability reporting
+- [SECURITY.md](https://github.com/teammaxout/cngx/blob/main/SECURITY.md) for vulnerability reporting
 - [Public Drift Log](public-drift-log.md), what submit shares

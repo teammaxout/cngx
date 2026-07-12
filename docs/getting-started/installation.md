@@ -35,7 +35,7 @@ cngx v0.2.0
 
 ## Alternative: standalone binary (no Python)
 
-On each [GitHub Release](https://github.com/aadi-joshi/cngx/releases), CI attaches platform binaries built with PyInstaller:
+On each [GitHub Release](https://github.com/teammaxout/cngx/releases), CI attaches platform binaries built with PyInstaller:
 
 | Asset | Platform |
 |-------|----------|
@@ -55,7 +55,7 @@ cngx-windows-x86_64.exe quickstart
 ## From source (development)
 
 ```bash
-git clone https://github.com/aadi-joshi/cngx.git
+git clone https://github.com/teammaxout/cngx.git
 cd cngx
 pip install -e ".[dev]"
 ```
@@ -104,7 +104,7 @@ docker build -t cngx-proxy .
 docker run -p 8642:8642 -e OPENAI_API_KEY=sk-... cngx-proxy
 ```
 
-See the [Dockerfile](https://github.com/aadi-joshi/cngx/blob/main/Dockerfile) header comments for details.
+See the [Dockerfile](https://github.com/teammaxout/cngx/blob/main/Dockerfile) header comments for details.
 
 ## Next steps
 

@@ -145,7 +145,7 @@ class TestGitHubActionGenerator:
         yaml = GitHubActionGenerator.generate()
         assert "cngx agent gate" in yaml
         assert "actions/checkout@v4" in yaml
-        assert "aadi-joshi/cngx@" in yaml
+        assert "teammaxout/cngx@" in yaml
         assert "output-file:" in yaml
 
     def test_custom_config(self):

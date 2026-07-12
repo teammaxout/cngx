@@ -49,7 +49,7 @@ Save the bot's final claim as `agent.md`, then make verification a required GitH
 
 ```yaml
 - uses: actions/checkout@v4
-- uses: aadi-joshi/cngx@v0.2.0
+- uses: teammaxout/cngx@v0.2.0
   with:
     output-file: agent.md
     command: pytest -q

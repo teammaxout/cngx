@@ -21,7 +21,7 @@ jobs:
       # Your agent writes its merge-ready message to a file, for example:
       # - run: ./run-agent.sh > agent_message.md
 
-      - uses: aadi-joshi/cngx@v0.2.0
+      - uses: teammaxout/cngx@v0.2.0
         with:
           output-file: agent_message.md
           command: pytest -q
@@ -32,7 +32,7 @@ jobs:
 The `command` value can be any test or build command:
 
 ```yaml
-      - uses: aadi-joshi/cngx@v0.2.0
+      - uses: teammaxout/cngx@v0.2.0
         with:
           output-file: agent_message.md
           command: npm test
@@ -62,7 +62,7 @@ When the tests already ran in a prior step, point the action at the log instead 
       - name: Run tests
         run: pytest -q | tee pytest.log
 
-      - uses: aadi-joshi/cngx@v0.2.0
+      - uses: teammaxout/cngx@v0.2.0
         with:
           output-file: agent_message.md
           evidence-file: pytest.log
@@ -75,7 +75,7 @@ cngx parses the log for a real result line and blocks when the agent's claim con
 Block even when the checks pass, if the agent never actually claimed to verify:
 
 ```yaml
-      - uses: aadi-joshi/cngx@v0.2.0
+      - uses: teammaxout/cngx@v0.2.0
         with:
           output-file: agent_message.md
           command: pytest -q
@@ -85,7 +85,7 @@ Block even when the checks pass, if the agent never actually claimed to verify:
 ## JSON output for downstream steps
 
 ```yaml
-      - uses: aadi-joshi/cngx@v0.2.0
+      - uses: teammaxout/cngx@v0.2.0
         id: cngx
         with:
           output-file: agent_message.md
@@ -100,7 +100,7 @@ When neither `command` nor `evidence-file` is set, the action falls back to the 
 The legacy inputs (`policy`, `prompt`, `prompt-file`, `model`, `adapter`, `task-id`) still exist for this path:
 
 ```yaml
-      - uses: aadi-joshi/cngx@v0.2.0
+      - uses: teammaxout/cngx@v0.2.0
         with:
           policy: examples/contracts/coding_agent_verification.yaml
           prompt: "Fix the pagination bug and run tests before merge"

@@ -84,7 +84,7 @@ jobs:
       # Your agent writes its merge-ready message, for example:
       # - run: ./run-agent.sh > agent_message.md
 
-      - uses: aadi-joshi/cngx@v0.2.0
+      - uses: teammaxout/cngx@v0.2.0
         with:
           output-file: agent_message.md
           command: pytest -q

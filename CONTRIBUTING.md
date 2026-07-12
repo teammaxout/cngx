@@ -13,7 +13,7 @@ Everything else in the tree is an **advanced / experimental** layer that is not 
 Requirements: Python 3.10+ and Git.
 
 ```bash
-git clone https://github.com/aadi-joshi/cngx.git
+git clone https://github.com/teammaxout/cngx.git
 cd cngx
 python -m venv .venv
 # Windows: .venv\Scripts\activate
@@ -88,7 +88,7 @@ Claim extraction (what the agent asserted) lives in `cngx/verify/claims.py`. Pre
 Use the action in your workflow:
 
 ```yaml
-- uses: aadi-joshi/cngx@v0.2.0
+- uses: teammaxout/cngx@v0.2.0
   with:
     output-file: agent_message.md
     command: pytest -q

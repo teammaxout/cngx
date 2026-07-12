@@ -19,7 +19,7 @@ STATIC_DIR = TRACKER_ROOT / "static"
 ASSETS_DIR = REPO_ROOT / "docs" / "assets"
 SITE_DIR = TRACKER_ROOT / "site"
 ANNOTATIONS_FILE = DATA_DIR / "annotations.json"
-GITHUB_REPO = "https://github.com/aadi-joshi/cngx"
+GITHUB_REPO = "https://github.com/teammaxout/cngx"
 PUBLIC_ENDPOINTS_FILE = TRACKER_ROOT / "public_endpoints.json"
 
 
@@ -369,7 +369,7 @@ def render_docs() -> str:
       </table>
 
       <footer class="site-footer">
-        <p>Full mkdocs source: <a href="{GITHUB_REPO}/tree/main/docs">github.com/aadi-joshi/cngx/docs</a></p>
+        <p>Full mkdocs source: <a href="{GITHUB_REPO}/tree/main/docs">github.com/teammaxout/cngx/docs</a></p>
       </footer>
     </main>
   </div>

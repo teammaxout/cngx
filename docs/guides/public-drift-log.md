@@ -6,13 +6,13 @@
 The **cngx Drift Tracker** is a static site showing behavioral fingerprint trends over time, built from opt-in community submissions.
 
 - **Source:** `tracker/` in the repository
-- **Live site:** [aadi-joshi.github.io/cngx](https://aadi-joshi.github.io/cngx/)
+- **Live site:** [teammaxout.github.io/cngx](https://teammaxout.github.io/cngx/)
 - **Live data:** aggregated metrics are served from a public S3 index (refreshed every few minutes in the browser)
 - **Cost:** GitHub Pages for the static shell; a small AWS stack handles opt-in submissions
 
 ## Demo
 
-See the live tracker: [aadi-joshi.github.io/cngx](https://aadi-joshi.github.io/cngx/)
+See the live tracker: [teammaxout.github.io/cngx](https://teammaxout.github.io/cngx/)
 
 ## What it shows
 
@@ -42,7 +42,7 @@ After you confirm, `cngx submit` POSTs the JSON to a serverless endpoint. No Git
 
 New records appear on the live tracker within a few minutes (browser cache is short).
 
-Schema details: [tracker/README.md](https://github.com/aadi-joshi/cngx/blob/main/tracker/README.md)
+Schema details: [tracker/README.md](https://github.com/teammaxout/cngx/blob/main/tracker/README.md)
 
 ## Optional maintainer probe
 

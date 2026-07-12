@@ -1,8 +1,8 @@
 site_name: cngx
 site_description: "Run the checks your AI coding agent claimed it ran, and block the merge on a false claim."
-site_url: https://aadi-joshi.github.io/cngx
-repo_url: https://github.com/aadi-joshi/cngx
-repo_name: aadi-joshi/cngx
+site_url: https://teammaxout.github.io/cngx
+repo_url: https://github.com/teammaxout/cngx
+repo_name: teammaxout/cngx
 
 theme:
   name: material
@@ -75,4 +75,4 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/aadi-joshi/cngx
+      link: https://github.com/teammaxout/cngx

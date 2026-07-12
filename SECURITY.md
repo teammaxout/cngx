@@ -4,7 +4,7 @@
 
 **Do not open a public GitHub issue for security bugs.**
 
-Report vulnerabilities privately via [GitHub private vulnerability reporting](https://github.com/aadi-joshi/cngx/security/advisories/new) on this repository.
+Report vulnerabilities privately via [GitHub private vulnerability reporting](https://github.com/teammaxout/cngx/security/advisories/new) on this repository.
 
 Include: description, steps to reproduce, affected versions, and impact.
 
