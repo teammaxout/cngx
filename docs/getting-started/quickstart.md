@@ -73,7 +73,7 @@ The **claim** (what the agent said) comes from one of:
 | 1 | Blocked |
 | 2 | Usage error |
 
-Supported result parsers: pytest, unittest, jest/vitest, go test, cargo test, rspec, phpunit, dotnet test, mocha, Maven Surefire, and a generic exit-code fallback for anything else.
+Supported result parsers: pytest, unittest, jest, vitest, go test, cargo test, rspec, phpunit, dotnet test, mocha, Maven Surefire, and a generic exit-code fallback for anything else.
 
 ## What to do next
 

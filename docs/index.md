@@ -30,7 +30,7 @@ BLOCKED  Agent claimed the work is done, but verification failed.
 exit code: 1
 ```
 
-The claim comes from `--output-file FILE`, `--stdin`, or `--claim "text"`. Reality comes from a command after `--` or from `--evidence-file LOG` (an existing log, parsed without running). Exit codes: 0 verified, 1 blocked, 2 usage error. Supported parsers: pytest, unittest, jest/vitest, go test, cargo test, rspec, phpunit, dotnet test, mocha, Maven Surefire, and a generic exit-code fallback.
+The claim comes from `--output-file FILE`, `--stdin`, or `--claim "text"`. Reality comes from a command after `--` or from `--evidence-file LOG` (an existing log, parsed without running). Exit codes: 0 verified, 1 blocked, 2 usage error. Supported parsers: pytest, unittest, jest, vitest, go test, cargo test, rspec, phpunit, dotnet test, mocha, Maven Surefire, and a generic exit-code fallback.
 
 ## Quick start
 

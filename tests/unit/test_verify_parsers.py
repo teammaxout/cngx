@@ -62,6 +62,30 @@ def test_jest_summary():
     assert r.ok is False
 
 
+def test_vitest_all_passed_with_skips():
+    text = (
+        "\x1b[32m Test Files  2 passed (2)\x1b[39m\n"
+        "\x1b[32m      Tests  12 passed | 3 skipped (15)\x1b[39m"
+    )
+    r = parse_output(text, exit_code=0)
+    assert r.framework == "vitest"
+    assert r.passed == 12
+    assert r.failed is None
+    assert r.skipped == 3
+    assert r.total == 15
+    assert r.ok is True
+
+
+def test_vitest_with_failures():
+    text = " Test Files  1 failed | 2 passed (3)\n      Tests  1 failed | 8 passed (9)"
+    r = parse_output(text, exit_code=1)
+    assert r.framework == "vitest"
+    assert r.passed == 8
+    assert r.failed == 1
+    assert r.total == 9
+    assert r.ok is False
+
+
 def test_cargo_ok():
     text = "test result: ok. 12 passed; 0 failed; 0 ignored"
     r = parse_output(text, exit_code=0)

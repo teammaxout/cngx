@@ -59,7 +59,7 @@ exit code: 1
 
 Exit codes: **0** verified, **1** blocked, **2** usage error.
 
-Supported result parsers: pytest, unittest, jest/vitest, go test, cargo test, rspec, phpunit, dotnet test, mocha, Maven Surefire, and a generic exit-code fallback for any other command. The overall pass/fail comes from the process exit code; parsed counts refine the receipt and catch a claim that contradicts the real numbers.
+Supported result parsers: pytest, unittest, jest, vitest, go test, cargo test, rspec, phpunit, dotnet test, mocha, Maven Surefire, and a generic exit-code fallback for any other command. The overall pass/fail comes from the process exit code; parsed counts refine the receipt and catch a claim that contradicts the real numbers.
 
 ## init
 

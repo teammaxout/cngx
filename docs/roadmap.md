@@ -11,7 +11,7 @@ else (heuristic policy lint, drift engine, community tracker) is advanced. Not a
 | `cngx verify` (run the claimed command, block false claims) | Shipped |
 | `--output-file` / `--stdin` / `--claim` claim sources | Shipped |
 | Command execution after `--`, or `--evidence-file` for existing logs | Shipped |
-| Result parsers: pytest, unittest, jest/vitest, go test, cargo test, generic | Shipped |
+| Result parsers: pytest, unittest, jest, vitest, go test, cargo test, generic | Shipped |
 | `--require-claim`, `--timeout`, `--json` | Shipped |
 | Zero-key `cngx quickstart` (real tests, false claim blocked) | Shipped |
 | GitHub Action with `command` input | Shipped |

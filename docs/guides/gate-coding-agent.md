@@ -45,7 +45,7 @@ exit code: 1
 
 The claim (what the agent said it did) comes from `--output-file FILE`, `--stdin`, or `--claim "text"`. Reality comes from a command after `--` (cngx runs it) or from `--evidence-file LOG` (an existing log, parsed without running).
 
-Supported result parsers: pytest, unittest, jest/vitest, go test, cargo test, rspec, phpunit, dotnet test, mocha, Maven Surefire, and a generic exit-code fallback.
+Supported result parsers: pytest, unittest, jest, vitest, go test, cargo test, rspec, phpunit, dotnet test, mocha, Maven Surefire, and a generic exit-code fallback.
 
 ## Useful flags
 

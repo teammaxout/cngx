@@ -123,6 +123,33 @@ def _parse_jest(text: str) -> Optional[TestResult]:
     )
 
 
+def _parse_vitest(text: str) -> Optional[TestResult]:
+    # Vitest prints separate "Test Files" and "Tests" lines. Match only the latter so
+    # file counts are not mistaken for test counts, and tolerate colored terminal output.
+    clean = re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", text)
+    line = re.search(r"(?m)^\s*Tests\s+(.*(?:\d+\s+(?:passed|failed|skipped|todo)).*)$", clean)
+    if not line:
+        return None
+
+    summary = line.group(1)
+    passed = _first_int(re.search(r"(\d+)\s+passed", summary))
+    failed = _first_int(re.search(r"(\d+)\s+failed", summary))
+    skipped = _first_int(re.search(r"(\d+)\s+(?:skipped|todo)", summary))
+    total = _first_int(re.search(r"\((\d+)\)\s*$", summary))
+    if total is None:
+        total = sum(count for count in (passed, failed, skipped) if count is not None)
+
+    return TestResult(
+        ok=(failed or 0) == 0,
+        framework="vitest",
+        passed=passed,
+        failed=failed,
+        skipped=skipped,
+        total=total,
+        summary_line=line.group(0).strip(),
+    )
+
+
 def _parse_go(text: str) -> Optional[TestResult]:
     if (
         "--- FAIL" not in text
@@ -294,6 +321,7 @@ def _parse_surefire(text: str) -> Optional[TestResult]:
 # generic pytest count parser must run last as a fallback. Every specific parser returns
 # None on non-matching text, so the earlier, stricter parsers claim only their own format.
 _PARSERS = (
+    _parse_vitest,
     _parse_jest,
     _parse_cargo,
     _parse_dotnet,
