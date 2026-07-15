@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `cngx verify`: `--from-commit [REF]` and `--from-pr` claim sources, reading the agent
+  claim from a git commit message or the GitHub Actions PR body. Claim sources are now
+  mutually exclusive; passing more than one is a usage error (exit 2).
 - `cngx verify`: result parsers for rspec, phpunit, dotnet test / vstest, mocha, and
   Maven Surefire / Gradle output, so parsed pass/fail counts and count-mismatch detection
   now cover those runners in addition to pytest, unittest, jest/vitest, go test, and cargo.

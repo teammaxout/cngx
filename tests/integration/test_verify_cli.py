@@ -75,3 +75,100 @@ def test_verify_no_command_no_evidence_is_usage_error(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     code = run_verify(command=[], claim="done")
     assert code == 2
+
+
+def _init_repo_with_commit(tmp_path: Path, message: str) -> None:
+    import subprocess
+
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "config", "user.email", "t@example.com"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=tmp_path, check=True)
+    (tmp_path / "f.txt").write_text("x", encoding="utf-8")
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", message], cwd=tmp_path, check=True)
+
+
+def test_verify_from_commit_blocks_false_claim(tmp_path):
+    # The commit message claims success; the real tests fail -> BLOCKED (1).
+    _init_repo_with_commit(tmp_path, "all tests pass, ready to merge")
+    (tmp_path / "cart.py").write_text(_BUGGY, encoding="utf-8")
+    (tmp_path / "test_cart.py").write_text(_TESTS, encoding="utf-8")
+    cwd = os.getcwd()
+    os.chdir(tmp_path)
+    try:
+        code = run_verify(command=[sys.executable, "-m", "unittest"], from_commit="HEAD")
+    finally:
+        os.chdir(cwd)
+    assert code == 1
+
+
+def test_verify_from_commit_passes_true_claim(tmp_path):
+    _init_repo_with_commit(tmp_path, "all tests pass")
+    (tmp_path / "cart.py").write_text(_FIXED, encoding="utf-8")
+    (tmp_path / "test_cart.py").write_text(_TESTS, encoding="utf-8")
+    cwd = os.getcwd()
+    os.chdir(tmp_path)
+    try:
+        code = run_verify(command=[sys.executable, "-m", "unittest"], from_commit="HEAD")
+    finally:
+        os.chdir(cwd)
+    assert code == 0
+
+
+def test_verify_from_commit_bad_ref_is_usage_error(tmp_path):
+    _init_repo_with_commit(tmp_path, "anything")
+    cwd = os.getcwd()
+    os.chdir(tmp_path)
+    try:
+        code = run_verify(command=[sys.executable, "-m", "pytest", "-q"], from_commit="no-such-ref")
+    finally:
+        os.chdir(cwd)
+    assert code == 2
+
+
+def test_verify_from_pr_reads_event_payload(tmp_path, monkeypatch):
+    import json as _json
+
+    event = {"pull_request": {"body": "all tests pass, ready to merge"}}
+    event_path = tmp_path / "event.json"
+    event_path.write_text(_json.dumps(event), encoding="utf-8")
+    monkeypatch.setenv("GITHUB_EVENT_PATH", str(event_path))
+
+    (tmp_path / "cart.py").write_text(_BUGGY, encoding="utf-8")
+    (tmp_path / "test_cart.py").write_text(_TESTS, encoding="utf-8")
+    cwd = os.getcwd()
+    os.chdir(tmp_path)
+    try:
+        code = run_verify(command=[sys.executable, "-m", "unittest"], from_pr=True)
+    finally:
+        os.chdir(cwd)
+    assert code == 1  # PR body claims success, tests fail -> blocked
+
+
+def test_verify_from_pr_outside_actions_is_usage_error(tmp_path, monkeypatch):
+    monkeypatch.delenv("GITHUB_EVENT_PATH", raising=False)
+    code = run_verify(command=[sys.executable, "-m", "pytest", "-q"], from_pr=True)
+    assert code == 2
+
+
+def test_verify_from_pr_no_pull_request_in_payload_is_usage_error(tmp_path, monkeypatch):
+    import json as _json
+
+    # A push event has no pull_request key.
+    event_path = tmp_path / "event.json"
+    event_path.write_text(_json.dumps({"ref": "refs/heads/main"}), encoding="utf-8")
+    monkeypatch.setenv("GITHUB_EVENT_PATH", str(event_path))
+    code = run_verify(command=[sys.executable, "-m", "pytest", "-q"], from_pr=True)
+    assert code == 2
+
+
+def test_verify_conflicting_claim_sources_is_usage_error(tmp_path):
+    # Each conflicting pair must exit 2 rather than silently pick one.
+    log = tmp_path / "ci.log"
+    log.write_text("5 passed", encoding="utf-8")
+
+    assert run_verify(command=[], claim="x", stdin=True, evidence_file=log) == 2
+    assert run_verify(command=[], claim="x", output_file=tmp_path / "a.md", evidence_file=log) == 2
+    assert run_verify(command=[], claim="x", from_commit="HEAD", evidence_file=log) == 2
+    assert run_verify(command=[], claim="x", from_pr=True, evidence_file=log) == 2
+    assert run_verify(command=[], from_commit="HEAD", from_pr=True, evidence_file=log) == 2

@@ -43,7 +43,7 @@ exit code: 1
 
 ## Where the claim and reality come from
 
-The claim (what the agent said it did) comes from `--output-file FILE`, `--stdin`, or `--claim "text"`. Reality comes from a command after `--` (cngx runs it) or from `--evidence-file LOG` (an existing log, parsed without running).
+The claim (what the agent said it did) comes from exactly one of `--output-file FILE`, `--stdin`, `--claim "text"`, `--from-commit REF` (a git commit message), or `--from-pr` (the pull request body, in GitHub Actions). These sources are mutually exclusive; passing more than one is a usage error. Reality comes from a command after `--` (cngx runs it) or from `--evidence-file LOG` (an existing log, parsed without running).
 
 Supported result parsers: pytest, unittest, jest/vitest, go test, cargo test, rspec, phpunit, dotnet test, mocha, Maven Surefire, and a generic exit-code fallback.
 
@@ -93,6 +93,34 @@ jobs:
 The job fails on a blocked verdict (exit 1). No provider secrets are required.
 
 To gate a log from an earlier step instead of running the command, set `evidence-file` instead of `command`. See [GitHub Action](github-action.md) for all inputs.
+
+## Read the claim straight from the PR
+
+In a PR-bot or auto-merge flow the agent's "done, all tests pass" claim is usually the pull request
+description, not a file you staged. `--from-pr` reads it directly from the GitHub Actions event
+payload, so the gate is a one-liner with nothing to stage:
+
+```yaml
+name: Agent gate
+
+on:
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxoutlabs/cngx@v0.2.0
+        with:
+          from-pr: true
+          command: pytest -q
+```
+
+The PR body is the claim, `pytest -q` is the reality, and the job fails (exit 1) when the description
+claims success but the tests fail. To read the claim from the latest commit message instead, use
+`from-commit: HEAD`.
 
 ## Advanced: `cngx check` is heuristic and gameable
 
