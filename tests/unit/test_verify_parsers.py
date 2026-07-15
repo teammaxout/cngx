@@ -103,3 +103,112 @@ def test_log_without_exit_code_infers_from_markers():
 def test_empty_log_not_ok():
     r = parse_output("", exit_code=None)
     assert r.ok is False
+
+
+def test_rspec_all_passed():
+    text = "Finished in 0.5 seconds (files took 0.1 seconds to load)\n5 examples, 0 failures"
+    r = parse_output(text, exit_code=0)
+    assert r.framework == "rspec"
+    assert r.passed == 5
+    assert r.failing == 0
+    assert r.ok is True
+
+
+def test_rspec_with_failures():
+    text = "6 examples, 2 failures, 1 pending"
+    r = parse_output(text, exit_code=1)
+    assert r.framework == "rspec"
+    assert r.failed == 2
+    assert r.skipped == 1
+    assert r.passed == 3
+    assert r.ok is False
+
+
+def test_phpunit_ok():
+    text = "OK (24 tests, 42 assertions)"
+    r = parse_output(text, exit_code=0)
+    assert r.framework == "phpunit"
+    assert r.passed == 24
+    assert r.failing == 0
+    assert r.ok is True
+
+
+def test_phpunit_with_failures_and_errors():
+    text = "Tests: 24, Assertions: 42, Failures: 3, Errors: 1"
+    r = parse_output(text, exit_code=1)
+    assert r.framework == "phpunit"
+    assert r.failed == 3
+    assert r.errors == 1
+    assert r.failing == 4
+    assert r.ok is False
+
+
+def test_dotnet_passed():
+    text = "Passed!  - Failed: 0, Passed: 10, Skipped: 0, Total: 10 - MyTests.dll (net8.0)"
+    r = parse_output(text, exit_code=0)
+    assert r.framework == "dotnet"
+    assert r.passed == 10
+    assert r.total == 10
+    assert r.ok is True
+
+
+def test_dotnet_failed():
+    text = "Failed!  - Failed: 2, Passed: 8, Skipped: 0, Total: 10 - MyTests.dll (net8.0)"
+    r = parse_output(text, exit_code=1)
+    assert r.framework == "dotnet"
+    assert r.failed == 2
+    assert r.passed == 8
+    assert r.ok is False
+
+
+def test_mocha_all_passing():
+    text = "  12 passing (34ms)"
+    r = parse_output(text, exit_code=0)
+    assert r.framework == "mocha"
+    assert r.passed == 12
+    assert r.failing == 0
+    assert r.ok is True
+
+
+def test_mocha_with_failing():
+    text = "  10 passing (2s)\n  2 failing"
+    r = parse_output(text, exit_code=1)
+    assert r.framework == "mocha"
+    assert r.passed == 10
+    assert r.failed == 2
+    assert r.ok is False
+
+
+def test_surefire_all_passed():
+    text = "Tests run: 10, Failures: 0, Errors: 0, Skipped: 0"
+    r = parse_output(text, exit_code=0)
+    assert r.framework == "surefire"
+    assert r.passed == 10
+    assert r.failing == 0
+    assert r.ok is True
+
+
+def test_surefire_with_failures_and_errors():
+    text = "Tests run: 10, Failures: 2, Errors: 1, Skipped: 0"
+    r = parse_output(text, exit_code=1)
+    assert r.framework == "surefire"
+    assert r.failed == 2
+    assert r.errors == 1
+    assert r.failing == 3
+    assert r.ok is False
+
+
+def test_mocha_does_not_match_prose():
+    # "N passing" in arbitrary prose is not a mocha summary; it must not be parsed as one.
+    text = "We have 3 passing cars in the lot"
+    r = parse_output(text, exit_code=0)
+    assert r.framework != "mocha"
+
+
+def test_mocha_does_not_hijack_pytest_with_passing_in_prose():
+    # A pytest log that merely mentions "passing" alongside its own "N passed" summary must still
+    # resolve to pytest with the correct count, not be captured by the mocha parser.
+    text = "collected 5 items\ntest session: 12 passing checks configured\n5 passed in 0.3s"
+    r = parse_output(text, exit_code=0)
+    assert r.framework == "pytest"
+    assert r.passed == 5

@@ -162,9 +162,149 @@ def _parse_cargo(text: str) -> Optional[TestResult]:
     )
 
 
-# Order matters: jest and cargo summaries also contain "N passed", so the
-# generic pytest count parser must run last as a fallback.
-_PARSERS = (_parse_jest, _parse_cargo, _parse_unittest, _parse_go, _parse_pytest)
+def _parse_rspec(text: str) -> Optional[TestResult]:
+    # RSpec summary: "5 examples, 0 failures" (optionally "N pending").
+    m = re.search(r"(\d+)\s+examples?,\s+(\d+)\s+failures?", text)
+    if not m:
+        return None
+    total = int(m.group(1))
+    failed = int(m.group(2))
+    pending = _first_int(re.search(r"(\d+)\s+pending", text))
+    passed = max(total - failed - (pending or 0), 0)
+    return TestResult(
+        ok=failed == 0,
+        framework="rspec",
+        passed=passed,
+        failed=failed,
+        skipped=pending,
+        total=total,
+        summary_line=m.group(0).strip(),
+    )
+
+
+def _parse_phpunit(text: str) -> Optional[TestResult]:
+    # Failure form: "Tests: 24, Assertions: 42, Failures: 3, Errors: 1".
+    # Success form: "OK (24 tests, 42 assertions)".
+    detailed = re.search(r"Tests:\s+(\d+),\s+Assertions:\s+\d+", text)
+    if detailed:
+        total = int(detailed.group(1))
+        failed = _first_int(re.search(r"Failures:\s+(\d+)", text)) or 0
+        errors = _first_int(re.search(r"Errors:\s+(\d+)", text)) or 0
+        skipped = _first_int(re.search(r"Skipped:\s+(\d+)", text))
+        passed = max(total - failed - errors - (skipped or 0), 0)
+        summary = _find_summary_line(text, ("tests:",))
+        return TestResult(
+            ok=failed == 0 and errors == 0,
+            framework="phpunit",
+            passed=passed,
+            failed=failed,
+            errors=errors,
+            skipped=skipped,
+            total=total,
+            summary_line=summary,
+        )
+    ok_line = re.search(r"OK\s+\((\d+)\s+tests?", text)
+    if ok_line:
+        total = int(ok_line.group(1))
+        return TestResult(
+            ok=True,
+            framework="phpunit",
+            passed=total,
+            failed=0,
+            errors=0,
+            total=total,
+            summary_line=ok_line.group(0).strip(),
+        )
+    return None
+
+
+def _parse_dotnet(text: str) -> Optional[TestResult]:
+    # "Passed!  - Failed: 0, Passed: 10, Skipped: 0, Total: 10" (or "Failed!  - ...").
+    m = re.search(
+        r"(Passed|Failed)!\s*-\s*Failed:\s+(\d+),\s+Passed:\s+(\d+),"
+        r"\s+Skipped:\s+(\d+),\s+Total:\s+(\d+)",
+        text,
+    )
+    if not m:
+        return None
+    failed = int(m.group(2))
+    passed = int(m.group(3))
+    skipped = int(m.group(4))
+    total = int(m.group(5))
+    return TestResult(
+        ok=m.group(1) == "Passed" and failed == 0,
+        framework="dotnet",
+        passed=passed,
+        failed=failed,
+        skipped=skipped,
+        total=total,
+        summary_line=m.group(0).strip(),
+    )
+
+
+def _parse_mocha(text: str) -> Optional[TestResult]:
+    # Mocha spec reporter prints the summary on its own line: "12 passing (34ms)".
+    # Anchor to that line so arbitrary prose ("3 passing cars") and logs that merely mention
+    # "passing" alongside another runner's "passed" summary don't get misread as mocha.
+    passing = re.search(r"(?m)^\s*(\d+)\s+passing(?:\s*\([^)]+\))?\s*$", text)
+    if not passing:
+        return None
+    passed = int(passing.group(1))
+    failed = _first_int(re.search(r"(?m)^\s*(\d+)\s+failing\b", text)) or 0
+    pending = _first_int(re.search(r"(?m)^\s*(\d+)\s+pending\b", text))
+    total = passed + failed + (pending or 0)
+    summary = _find_summary_line(text, ("passing", "failing"))
+    return TestResult(
+        ok=failed == 0,
+        framework="mocha",
+        passed=passed,
+        failed=failed,
+        skipped=pending,
+        total=total,
+        summary_line=summary,
+    )
+
+
+def _parse_surefire(text: str) -> Optional[TestResult]:
+    # Maven Surefire / Gradle: "Tests run: 10, Failures: 2, Errors: 1, Skipped: 0".
+    m = re.search(
+        r"Tests run:\s+(\d+),\s+Failures:\s+(\d+),\s+Errors:\s+(\d+)" r"(?:,\s+Skipped:\s+(\d+))?",
+        text,
+    )
+    if not m:
+        return None
+    total = int(m.group(1))
+    failed = int(m.group(2))
+    errors = int(m.group(3))
+    skipped = int(m.group(4)) if m.group(4) is not None else None
+    passed = max(total - failed - errors - (skipped or 0), 0)
+    return TestResult(
+        ok=failed == 0 and errors == 0,
+        framework="surefire",
+        passed=passed,
+        failed=failed,
+        errors=errors,
+        skipped=skipped,
+        total=total,
+        summary_line=m.group(0).strip(),
+    )
+
+
+# Order matters: several runners' summaries also contain "N passed"/"passed", so the
+# generic pytest count parser must run last as a fallback. Every specific parser returns
+# None on non-matching text, so the earlier, stricter parsers claim only their own format.
+_PARSERS = (
+    _parse_jest,
+    _parse_cargo,
+    _parse_dotnet,
+    _parse_surefire,
+    _parse_phpunit,
+    _parse_rspec,
+    _parse_mocha,
+    _parse_unittest,
+    _parse_go,
+    _parse_pytest,
+)
 
 
 def parse_output(text: str, exit_code: Optional[int] = None) -> TestResult:
