@@ -243,13 +243,15 @@ def _parse_dotnet(text: str) -> Optional[TestResult]:
 
 
 def _parse_mocha(text: str) -> Optional[TestResult]:
-    # Mocha spec reporter: "12 passing (34ms)" and optionally "2 failing".
-    passing = re.search(r"(\d+)\s+passing", text)
+    # Mocha spec reporter prints the summary on its own line: "12 passing (34ms)".
+    # Anchor to that line so arbitrary prose ("3 passing cars") and logs that merely mention
+    # "passing" alongside another runner's "passed" summary don't get misread as mocha.
+    passing = re.search(r"(?m)^\s*(\d+)\s+passing(?:\s*\([^)]+\))?\s*$", text)
     if not passing:
         return None
     passed = int(passing.group(1))
-    failed = _first_int(re.search(r"(\d+)\s+failing", text)) or 0
-    pending = _first_int(re.search(r"(\d+)\s+pending", text))
+    failed = _first_int(re.search(r"(?m)^\s*(\d+)\s+failing\b", text)) or 0
+    pending = _first_int(re.search(r"(?m)^\s*(\d+)\s+pending\b", text))
     total = passed + failed + (pending or 0)
     summary = _find_summary_line(text, ("passing", "failing"))
     return TestResult(

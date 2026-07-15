@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `cngx verify`: result parsers for rspec, phpunit, dotnet test / vstest, mocha, and
+  Maven Surefire / Gradle output, so parsed pass/fail counts and count-mismatch detection
+  now cover those runners in addition to pytest, unittest, jest/vitest, go test, and cargo.
+
 ### Changed
 - Repository moved to [`maxoutlabs/cngx`](https://github.com/maxoutlabs/cngx).
   Docs, PyPI project URLs, Action examples, and badges now point at the org.

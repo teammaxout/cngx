@@ -196,3 +196,19 @@ def test_surefire_with_failures_and_errors():
     assert r.errors == 1
     assert r.failing == 3
     assert r.ok is False
+
+
+def test_mocha_does_not_match_prose():
+    # "N passing" in arbitrary prose is not a mocha summary; it must not be parsed as one.
+    text = "We have 3 passing cars in the lot"
+    r = parse_output(text, exit_code=0)
+    assert r.framework != "mocha"
+
+
+def test_mocha_does_not_hijack_pytest_with_passing_in_prose():
+    # A pytest log that merely mentions "passing" alongside its own "N passed" summary must still
+    # resolve to pytest with the correct count, not be captured by the mocha parser.
+    text = "collected 5 items\ntest session: 12 passing checks configured\n5 passed in 0.3s"
+    r = parse_output(text, exit_code=0)
+    assert r.framework == "pytest"
+    assert r.passed == 5
