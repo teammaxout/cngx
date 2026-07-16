@@ -174,17 +174,19 @@ def test_verify_conflicting_claim_sources_is_usage_error(tmp_path):
     assert run_verify(command=[], from_commit="HEAD", from_pr=True, evidence_file=log) == 2
 
 
-def test_cli_verify_help_lists_new_claim_sources():
+def test_cli_verify_exposes_new_claim_source_options():
     # The real CLI (main.py app) must expose the flags; a prior version wired them into the wrong
-    # module, so `cngx verify --help` didn't show them. Guard against that regression.
-    from typer.testing import CliRunner
+    # module, so cngx verify had no --from-commit / --from-pr. Inspect the command's parameters
+    # directly rather than scraping --help text, which Rich colorizes and line-wraps (the rendered
+    # output can split "--from-commit" across ANSI escape codes, so a substring check is fragile).
+    import typer
 
     from cngx.cli.main import app
 
-    result = CliRunner().invoke(app, ["verify", "--help"])
-    assert result.exit_code == 0
-    assert "--from-commit" in result.output
-    assert "--from-pr" in result.output
+    verify_cmd = typer.main.get_command(app).commands["verify"]
+    option_names = {opt for param in verify_cmd.params for opt in param.opts}
+    assert "--from-commit" in option_names
+    assert "--from-pr" in option_names
 
 
 def test_cli_verify_from_commit_runs_through_real_app(tmp_path):
