@@ -60,12 +60,52 @@ exit code: 1
 | `--from-pr` | Read the claim from the GitHub Actions PR event body |
 | `-e`, `--evidence-file` | Parse an existing test/CI log instead of running a command |
 | `--require-claim` | Also block if checks pass but the agent made no verification claim |
+| `--record` | Record this run's outcome to the local store (opt-in; see below) |
+| `--label NAME` | Model/agent label for a recorded run; overrides `CNGX_VERIFY_LABEL` |
+| `--stats` | Print recorded fabricated-claim stats per label and exit (pure read) |
 | `--timeout` | Seconds before the command is killed (default `600`) |
 | `-j`, `--json` | Machine-readable verdict |
 
 Exit codes: **0** verified, **1** blocked, **2** usage error.
 
 Supported result parsers: pytest, unittest, jest, vitest, go test, cargo test, rspec, phpunit, dotnet test, mocha, Maven Surefire, and a generic exit-code fallback for any other command. The overall pass/fail comes from the process exit code; parsed counts refine the receipt and catch a claim that contradicts the real numbers.
+
+**Recording outcomes and fabricated-claim stats** (opt-in)
+
+Recording is opt-in and local-first. A plain `cngx verify` writes nothing and opens no database; the DuckDB store is only touched when you record or read stats.
+
+```bash
+cngx verify --record --label gpt-4o -- pytest   # store this run's outcome
+CNGX_VERIFY_RECORD=1 cngx verify -- pytest      # same, without the flag (for CI)
+cngx verify --stats                             # read the outcomes back
+cngx verify --stats --json                      # machine-readable
+```
+
+Each recorded run stores only the label, the pass/fail booleans, the parsed counts, the framework, and the verdict status. Claim text, the command, stdout, and file paths are never stored.
+
+`cngx verify --stats` needs no command and runs no checks; it reports, per label:
+
+```
+                    Fabricated-claim rate per label
+label           runs   success claims   fabricated   rate   trend
+gpt-4o            13               13            6    46%   70% ↓ 40%
+claude-sonnet      4                3            0     0%   -
+(unlabeled)        1                1            1   100%   -
+```
+
+A **fabricated claim** is a run where the agent claimed success but verification blocked, and the command did not time out:
+
+```
+fabricated = claimed_success AND status == blocked AND NOT timed_out
+```
+
+Timeouts, usage errors, and `--require-claim` blocks where the agent never claimed success are not counted as fabricated. The rate's denominator is the runs where the agent actually claimed success, not all runs:
+
+```
+rate = fabricated / runs_with_success_claim
+```
+
+`--label` overrides `CNGX_VERIFY_LABEL`, and the model is never inferred from the run. Runs recorded without a label are grouped under `(unlabeled)`. The trend column compares the fabricated rate over the most recent runs against the ones before them, and shows `-` until a label has enough success-claim runs to compare.
 
 ## init
 
@@ -254,5 +294,7 @@ Still available for power users:
 | `OPENAI_API_KEY` | Forward OpenAI traffic through the local proxy |
 | `ANTHROPIC_API_KEY` | Forward Anthropic traffic through the local proxy |
 | `GOOGLE_API_KEY` | Gemini **capture adapter** for `cngx check` / `cngx capture` (not used by the local proxy) |
+| `CNGX_VERIFY_RECORD` | Set to `1` to record `cngx verify` outcomes without passing `--record` |
+| `CNGX_VERIFY_LABEL` | Default model/agent label for recorded runs; `--label` overrides it |
 
 API keys are read from the environment for forwarding or adapter capture only, never logged or written to DuckDB.

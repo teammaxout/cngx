@@ -223,3 +223,84 @@ def test_cli_verify_conflicting_sources_through_real_app(tmp_path):
     )
     assert result.exit_code == 2
     assert "Conflicting claim sources" in result.output
+
+
+def test_cli_verify_exposes_recording_options():
+    # The real CLI (main.py app) must expose the recording flags. Inspect the command's parameters
+    # directly rather than scraping --help text, which Rich colorizes and line-wraps (the rendered
+    # output can split "--record" across ANSI escape codes, so a substring check is fragile).
+    import typer
+
+    from cngx.cli.main import app
+
+    verify_cmd = typer.main.get_command(app).commands["verify"]
+    option_names = {opt for param in verify_cmd.params for opt in param.opts}
+    assert "--record" in option_names
+    assert "--label" in option_names
+    assert "--stats" in option_names
+
+
+def test_cli_verify_without_record_writes_no_database(tmp_path):
+    # Plain `cngx verify` must stay zero-setup: no database is created or opened.
+    from typer.testing import CliRunner
+
+    from cngx.cli.main import app
+    from cngx.storage.database import reset_database
+
+    (tmp_path / "test_ok.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
+    cwd = os.getcwd()
+    reset_database()
+    os.chdir(tmp_path)
+    try:
+        result = CliRunner().invoke(
+            app,
+            ["verify", "--claim", "all tests pass", "--", sys.executable, "-m", "pytest", "-q"],
+        )
+    finally:
+        os.chdir(cwd)
+        reset_database()
+
+    assert result.exit_code == 0
+    assert not (tmp_path / ".cngx" / "cngx.db").exists()
+
+
+def test_cli_verify_record_then_stats_round_trip(tmp_path):
+    # Record a run through the real CLI, then read it back with --stats. This locks the wiring:
+    # the flags have to be plumbed through main.py, not just present on run_verify.
+    from typer.testing import CliRunner
+
+    from cngx.cli.main import app
+    from cngx.storage.database import reset_database
+
+    (tmp_path / "test_ok.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
+    cwd = os.getcwd()
+    reset_database()
+    os.chdir(tmp_path)
+    try:
+        recorded = CliRunner().invoke(
+            app,
+            [
+                "verify",
+                "--record",
+                "--label",
+                "test-model",
+                "--claim",
+                "all tests pass",
+                "--",
+                sys.executable,
+                "-m",
+                "pytest",
+                "-q",
+            ],
+        )
+        stats = CliRunner().invoke(app, ["verify", "--stats"])
+    finally:
+        os.chdir(cwd)
+        reset_database()
+
+    # Claim says pass and the tests pass, so the run itself is verified.
+    assert recorded.exit_code == 0
+    # Recording is opt-in, so this run should have created the store and landed one row.
+    assert (tmp_path / ".cngx" / "cngx.db").exists()
+    assert stats.exit_code == 0
+    assert "test-model" in stats.output
