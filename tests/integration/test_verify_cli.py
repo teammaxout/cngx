@@ -2,6 +2,7 @@
 
 import os
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 from cngx.cli.verify_cmd import run_verify
@@ -240,25 +241,43 @@ def test_cli_verify_exposes_recording_options():
     assert "--stats" in option_names
 
 
+@contextmanager
+def _cngx_root_at(tmp_path):
+    """Run the CLI with the cngx project root, and therefore the DuckDB store, inside tmp_path.
+
+    Both the config and the database are module-level singletons and the store path is derived from
+    `config.project_root`, which defaults to the cwd at the moment the config is first built. Changing
+    the directory alone is not enough: in a full test session an earlier test has usually already built
+    a config rooted at the repo, so the store would land in the real .cngx directory. Reset both
+    singletons after moving, and again on the way out so later tests are unaffected.
+    """
+    from cngx.core.config import reset_config
+    from cngx.storage.database import reset_database
+
+    cwd = os.getcwd()
+    os.chdir(tmp_path)
+    reset_config()
+    reset_database()
+    try:
+        yield
+    finally:
+        os.chdir(cwd)
+        reset_config()
+        reset_database()
+
+
 def test_cli_verify_without_record_writes_no_database(tmp_path):
     # Plain `cngx verify` must stay zero-setup: no database is created or opened.
     from typer.testing import CliRunner
 
     from cngx.cli.main import app
-    from cngx.storage.database import reset_database
 
     (tmp_path / "test_ok.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
-    cwd = os.getcwd()
-    reset_database()
-    os.chdir(tmp_path)
-    try:
+    with _cngx_root_at(tmp_path):
         result = CliRunner().invoke(
             app,
             ["verify", "--claim", "all tests pass", "--", sys.executable, "-m", "pytest", "-q"],
         )
-    finally:
-        os.chdir(cwd)
-        reset_database()
 
     assert result.exit_code == 0
     assert not (tmp_path / ".cngx" / "cngx.db").exists()
@@ -270,13 +289,9 @@ def test_cli_verify_record_then_stats_round_trip(tmp_path):
     from typer.testing import CliRunner
 
     from cngx.cli.main import app
-    from cngx.storage.database import reset_database
 
     (tmp_path / "test_ok.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
-    cwd = os.getcwd()
-    reset_database()
-    os.chdir(tmp_path)
-    try:
+    with _cngx_root_at(tmp_path):
         recorded = CliRunner().invoke(
             app,
             [
@@ -294,9 +309,6 @@ def test_cli_verify_record_then_stats_round_trip(tmp_path):
             ],
         )
         stats = CliRunner().invoke(app, ["verify", "--stats"])
-    finally:
-        os.chdir(cwd)
-        reset_database()
 
     # Claim says pass and the tests pass, so the run itself is verified.
     assert recorded.exit_code == 0
