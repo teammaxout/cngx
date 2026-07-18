@@ -21,10 +21,13 @@ black --check .
 
 | Contribution | Start here |
 |--------------|------------|
-| New metric | `cngx/fingerprint/metrics.py` |
+| Verify parsers (core) | `cngx/verify/parsers/` |
+| Policy lint | `cngx/check/` |
+| New behavioral metric | `cngx/fingerprint/metrics.py` |
 | New LLM adapter | `cngx/capture/adapters/base.py` |
+| Proxy / session capture | `cngx/wrap/` |
 | Policy examples | `examples/contracts/` |
-| Tracker schema | `tracker/README.md` |
+| Schema / tracker | `tracker/README.md` |
 
 ## Code of conduct
 
