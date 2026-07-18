@@ -164,6 +164,24 @@ def verify(
     require_claim: bool = typer.Option(
         False, "--require-claim", help="Also block if checks pass but the agent made no claim"
     ),
+    record: bool = typer.Option(
+        False,
+        "--record",
+        help="Record this outcome to the local DuckDB store (opt-in). "
+        "Also enabled by CNGX_VERIFY_RECORD=1. Plain verify writes nothing.",
+    ),
+    label: Optional[str] = typer.Option(
+        None,
+        "--label",
+        metavar="NAME",
+        help="Model/agent label for this run when recording. "
+        "Overrides CNGX_VERIFY_LABEL. The model is never inferred.",
+    ),
+    stats: bool = typer.Option(
+        False,
+        "--stats",
+        help="Show recorded fabricated-claim stats per label and exit (pure read, no command run).",
+    ),
     timeout: float = typer.Option(600.0, "--timeout", help="Seconds before the command is killed"),
     json_output: bool = typer.Option(False, "--json", "-j", help="Machine-readable output"),
 ) -> None:
@@ -192,6 +210,9 @@ def verify(
             from_pr=from_pr,
             evidence_file=evidence_file,
             require_claim=require_claim,
+            record=record,
+            label=label,
+            stats=stats,
             timeout=timeout,
             json_output=json_output,
         )

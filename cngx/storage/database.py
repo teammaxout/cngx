@@ -279,6 +279,25 @@ class Database:
             )
         """)
 
+        # Verify outcomes (issue #43): one row per opt-in `cngx verify --record` run.
+        # Stores only pass/fail booleans, counts, the model/agent label, and the verdict status --
+        # deliberately NO claim text, command string, stdout, or file paths.
+        self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS verify_outcomes (
+                id VARCHAR PRIMARY KEY,
+                label VARCHAR NOT NULL DEFAULT '',
+                claimed_success BOOLEAN NOT NULL,
+                real_ok BOOLEAN NOT NULL,
+                claimed_passed INTEGER,
+                real_passed INTEGER,
+                real_failed INTEGER,
+                framework VARCHAR,
+                status VARCHAR NOT NULL,
+                timed_out BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
         # Create indexes
         self.conn.execute("CREATE INDEX IF NOT EXISTS idx_traces_task ON traces(task_id)")
         self.conn.execute("CREATE INDEX IF NOT EXISTS idx_traces_model ON traces(model)")
@@ -290,6 +309,62 @@ class Database:
             "CREATE INDEX IF NOT EXISTS idx_fingerprints_trace ON fingerprints(trace_id)"
         )
         self.conn.execute("CREATE INDEX IF NOT EXISTS idx_baselines_task ON baselines(task_id)")
+        self.conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_verify_outcomes_label ON verify_outcomes(label, created_at)"
+        )
+
+    def record_verify_outcome(
+        self,
+        *,
+        label: str,
+        claimed_success: bool,
+        real_ok: bool,
+        status: str,
+        timed_out: bool,
+        claimed_passed: "Optional[int]" = None,
+        real_passed: "Optional[int]" = None,
+        real_failed: "Optional[int]" = None,
+        framework: "Optional[str]" = None,
+    ) -> str:
+        """Persist one verify outcome (issue #43).
+
+        Stores only the pass/fail booleans, counts, label, framework, and verdict status.
+        Never stores claim text, the command, stdout, or file paths.
+        """
+        import uuid
+
+        outcome_id = f"vo_{uuid.uuid4().hex}"
+        self._execute(
+            """
+            INSERT INTO verify_outcomes
+            (id, label, claimed_success, real_ok, claimed_passed, real_passed,
+             real_failed, framework, status, timed_out)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                outcome_id,
+                label or "",
+                claimed_success,
+                real_ok,
+                claimed_passed,
+                real_passed,
+                real_failed,
+                framework,
+                status,
+                timed_out,
+            ),
+        )
+        return outcome_id
+
+    def get_verify_outcomes(self) -> "list[dict]":
+        """Return all recorded verify outcomes, oldest first (issue #43)."""
+        rows, cols = self._fetchall("""
+            SELECT id, label, claimed_success, real_ok, claimed_passed, real_passed,
+                   real_failed, framework, status, timed_out, created_at
+            FROM verify_outcomes
+            ORDER BY created_at ASC
+            """)
+        return [dict(zip(cols, row)) for row in rows]
 
     def close(self) -> None:
         """Close the database connection."""

@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `cngx verify`: `--record` and `--stats` for tracking the fabricated-claim rate per model or
+  agent label. `--record` (or `CNGX_VERIFY_RECORD=1` in CI) persists one row per run to the
+  local DuckDB store, and `--label NAME` (or `CNGX_VERIFY_LABEL`) tags it; the model is never
+  inferred. `cngx verify --stats` reads those outcomes back and reports, per label, how often
+  the agent claimed success while the checks did not verify. Recording is opt-in and
+  local-first: a plain `cngx verify` writes nothing and opens no database, and only the
+  pass/fail booleans, counts, label, framework, and verdict status are stored. Claim text,
+  commands, stdout, and file paths are never persisted.
 - `cngx verify`: `--from-commit [REF]` and `--from-pr` claim sources, reading the agent
   claim from a git commit message or the GitHub Actions PR body. Claim sources are now
   mutually exclusive; passing more than one is a usage error (exit 2).
