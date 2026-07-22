@@ -68,7 +68,7 @@ To add support for a new runner (for example rspec, phpunit, dotnet test):
 3. Set `ok` from the real result, and fill `passed` / `failed` / `errors` / `total` and a human `summary_line` when you can. The overall pass/fail from an actual process run always defers to the exit code (see `parse_output`).
 4. Add a test with a real captured output snippet in `tests/unit/test_verify_parsers.py`.
 
-Claim extraction (what the agent asserted) lives in `cngx/verify/claims.py`. Precision matters more than recall there: a false "the agent claimed success" produces a wrong verdict, so only add strong, specific assertions.
+Claim extraction (what the agent asserted) lives in `cngx/verify/claims.py`. Precision matters more than recall there: a false "the agent claimed success" produces a wrong verdict, so only add strong, specific assertions. Bind words such as "green" or "passed" to a concrete verification subject (`CI`, checks, tests, or a suite); never treat broad phrases such as "done", "looks good", or "should be fine" as success claims.
 
 ## Advanced contributions
 

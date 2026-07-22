@@ -1,5 +1,7 @@
 """Tests for agent-claim extraction."""
 
+import pytest
+
 from cngx.verify.claims import extract_claim
 
 
@@ -50,3 +52,26 @@ def test_no_failures_marker():
 def test_markers_deduped():
     c = extract_claim("all tests pass. all tests pass again.")
     assert c.markers.count("all tests pass") == 1
+
+
+@pytest.mark.parametrize(
+    ("text", "marker"),
+    [
+        ("CI is green.", "CI green"),
+        ("CI green after the retry.", "CI green"),
+        ("All checks passed.", "all checks passed"),
+        ("Tests are green.", "tests are green"),
+        ("The suite is green.", "suite is green"),
+    ],
+)
+def test_high_precision_green_check_phrases(text, marker):
+    claim = extract_claim(text)
+    assert claim.claims_success is True
+    assert marker in claim.markers
+
+
+@pytest.mark.parametrize("text", ["Done.", "Looks good.", "Should be fine."])
+def test_weak_positive_phrases_are_not_success_claims(text):
+    claim = extract_claim(text)
+    assert claim.claims_success is False
+    assert claim.has_claim is False
